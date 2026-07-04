@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Marginalia — White Paper v2.0</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400;1,6..72,500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F7F7F4;
+    --surface:#FFFFFF;
+    --ink:#17181C;
+    --ink-2:#5B5E66;
+    --ink-3:#9A9DA6;
+    --line:#E7E7E2;
+    --line-2:#EFEFEA;
+    --accent:#3546E8;
+    --accent-soft:#EDEFFE;
+    --accent-ink:#2635B8;
+    --good:#1D7A5F;
+    /* shelf tones — the approved deep cover palette */
+    --midnight:#151B33; --midnight-hi:#33406B;
+    --forest:#0C2B24;  --forest-hi:#1E5C4F;
+    --sepia:#3C2113;   --sepia-hi:#7A4A2B;
+    --graphite:#26272B;--graphite-hi:#5B5E66;
+    --sans:'Instrument Sans',-apple-system,'Segoe UI',sans-serif;
+    --serif:'Newsreader',Georgia,serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  @media (prefers-reduced-motion:reduce){ html{scroll-behavior:auto} *{transition:none!important; animation:none!important;} }
+  body{
+    background:var(--bg); color:var(--ink);
+    font-family:var(--sans); font-size:15.5px; line-height:1.7;
+    -webkit-font-smoothing:antialiased;
+  }
+  .page{max-width:860px; margin:0 auto; padding:0 28px 110px;}
+
+  /* ---------- cover ---------- */
+  .cover{padding:104px 0 72px;}
+  .cover .doclabel{
+    display:inline-flex; align-items:center; gap:10px;
+    font-size:11.5px; font-weight:600; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3);
+    margin-bottom:34px;
+  }
+  .cover .doclabel::before{content:""; width:26px; height:2px; background:var(--accent); border-radius:2px;}
+  h1.title{
+    font-family:var(--serif); font-weight:500; font-size:clamp(52px,9vw,88px);
+    line-height:.98; letter-spacing:-.02em;
+  }
+  .subtitle{
+    font-family:var(--serif); font-style:italic; font-weight:400;
+    font-size:clamp(19px,3vw,24px); color:var(--ink-2); margin-top:20px; max-width:32ch;
+  }
+  .covermeta{
+    display:flex; gap:40px; flex-wrap:wrap; margin-top:46px; padding-top:26px; border-top:1px solid var(--line);
+  }
+  .covermeta div{font-size:13px; color:var(--ink-2); line-height:1.8;}
+  .covermeta b{display:block; font-size:11px; font-weight:600; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-3);}
+  .abstract{
+    margin-top:52px; background:var(--surface); border:1px solid var(--line); border-radius:18px;
+    padding:34px 38px; box-shadow:0 1px 2px rgba(23,24,28,.03), 0 20px 44px -34px rgba(23,24,28,.12);
+  }
+  .abstract h2{font-size:11.5px; font-weight:600; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); margin-bottom:14px;}
+  .abstract p{font-size:15.5px; color:var(--ink); margin-bottom:12px;}
+  .abstract p:last-child{margin-bottom:0;}
+
+  /* ---------- chapters ---------- */
+  .chapter{margin-top:104px;}
+  .chaphead{border-bottom:1px solid var(--line); padding-bottom:18px; margin-bottom:38px;}
+  .chaphead .no{
+    font-size:12px; font-weight:600; letter-spacing:.16em; text-transform:uppercase; color:var(--accent);
+    margin-bottom:8px;
+  }
+  .chaphead h2{
+    font-family:var(--serif); font-weight:500; font-size:clamp(28px,4.5vw,38px);
+    letter-spacing:-.015em; line-height:1.08;
+  }
+  h3{
+    font-family:var(--serif); font-weight:500; font-size:22px; letter-spacing:-.01em;
+    margin:48px 0 12px;
+  }
+  h4{
+    font-size:12px; font-weight:600; letter-spacing:.13em; text-transform:uppercase;
+    color:var(--ink-2); margin:34px 0 10px;
+  }
+  p{margin-bottom:15px; color:var(--ink);}
+  p.lede{font-family:var(--serif); font-size:20px; line-height:1.6; color:var(--ink); margin-bottom:22px;}
+  .muted, .caption{color:var(--ink-2);}
+  strong{font-weight:600;}
+  em{font-style:italic;}
+  a{color:var(--accent); text-decoration:none;}
+  ul.plain, ol.plain{margin:0 0 18px 20px;}
+  ul.plain li, ol.plain li{margin-bottom:9px; padding-left:4px;}
+  ol.plain li::marker{color:var(--accent); font-weight:600;}
+  ul.plain li::marker{color:var(--ink-3);}
+  code{
+    font-family:ui-monospace,'SF Mono',Menlo,monospace; font-size:.86em;
+    background:var(--line-2); border-radius:5px; padding:2px 6px;
+  }
+
+  /* ---------- panels, figures, tables ---------- */
+  .panel{
+    background:var(--surface); border:1px solid var(--line); border-radius:16px;
+    padding:26px 30px; margin:28px 0;
+  }
+  .panel .phead{font-size:11.5px; font-weight:600; letter-spacing:.13em; text-transform:uppercase; color:var(--ink-3); margin-bottom:16px;}
+  .panel .phead b{color:var(--accent);}
+  figure{margin:36px 0;}
+  figure .frame{
+    background:var(--surface); border:1px solid var(--line); border-radius:16px; padding:22px; overflow:hidden;
+  }
+  figcaption{font-size:13px; color:var(--ink-2); margin-top:12px; line-height:1.6;}
+  figcaption b{color:var(--ink); font-weight:600;}
+
+  table{width:100%; border-collapse:collapse; margin:22px 0 30px; font-size:14.5px;}
+  th{
+    font-size:11.5px; font-weight:600; letter-spacing:.11em; text-transform:uppercase;
+    color:var(--ink-3); text-align:left; padding:0 16px 10px 0; border-bottom:1px solid var(--ink);
+  }
+  td{padding:11px 16px 11px 0; border-bottom:1px solid var(--line-2); vertical-align:top;}
+  td:first-child{font-weight:600;}
+  tr:last-child td{border-bottom:none;}
+  .num{font-variant-numeric:tabular-nums;}
+
+  /* formulas */
+  .formula{
+    font-family:ui-monospace,'SF Mono',Menlo,monospace; font-size:14.5px; line-height:1.9;
+    background:var(--surface); border:1px solid var(--line); border-left:3px solid var(--accent);
+    border-radius:12px; padding:18px 22px; margin:22px 0; overflow-x:auto;
+  }
+  .formula .fnote{
+    display:block; font-family:var(--sans); font-size:13px; color:var(--ink-2);
+    margin-top:10px; line-height:1.6;
+  }
+  .formula i{font-style:italic;} .formula sub,.formula sup{font-size:.72em;}
+
+  /* swatches */
+  .swatchrow{display:flex; align-items:center; gap:12px;}
+  .swatch{width:40px; height:28px; border-radius:6px; border:1px solid rgba(23,24,28,.12); flex:0 0 auto;}
+  .swatch.duo{background:linear-gradient(150deg,var(--a),var(--b));}
+
+  /* pull quote */
+  .pull-quote{
+    font-family:var(--serif); font-style:italic; font-weight:400; font-size:25px; line-height:1.45;
+    color:var(--ink); margin:52px auto; max-width:620px; text-align:center;
+  }
+  .pull-quote::before{content:""; display:block; width:32px; height:2px; background:var(--accent); margin:0 auto 20px; border-radius:2px;}
+
+  /* tag */
+  .tag{
+    display:inline-block; font-size:11px; font-weight:600; letter-spacing:.07em; text-transform:uppercase;
+    color:var(--accent); background:var(--accent-soft); border-radius:6px; padding:2px 8px; white-space:nowrap;
+  }
+
+  /* TOC */
+  .toc{display:grid; grid-template-columns:1fr 1fr; gap:0 44px; margin-top:6px;}
+  @media(max-width:640px){ .toc{grid-template-columns:1fr;} }
+  .toc a{
+    display:flex; gap:14px; align-items:baseline; color:var(--ink); font-size:14.5px; font-weight:500;
+    padding:10px 2px; border-bottom:1px solid var(--line-2); transition:color .15s;
+  }
+  .toc a:hover{color:var(--accent);}
+  .toc a .n{font-size:11.5px; font-weight:600; color:var(--ink-3); letter-spacing:.06em; min-width:26px;}
+
+  /* feature grid */
+  .cardgrid{display:grid; grid-template-columns:1fr 1fr; gap:16px; margin:26px 0;}
+  @media(max-width:700px){ .cardgrid{grid-template-columns:1fr;} }
+  .cardgrid .panel{margin:0;}
+  .cardgrid h5{font-size:15px; font-weight:600; margin-bottom:6px;}
+  .cardgrid p{font-size:13.5px; color:var(--ink-2); margin:0; line-height:1.6;}
+
+  .colophon{
+    margin-top:110px; border-top:1px solid var(--line); padding-top:22px;
+    display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;
+    font-size:12.5px; color:var(--ink-3);
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+<!-- ================= COVER ================= -->
+<header class="cover">
+  <div class="doclabel">White paper · v2.0 · Second edition</div>
+  <h1 class="title">Marginalia</h1>
+  <p class="subtitle">A mathematical librarian for a reader of science fiction.</p>
+  <div class="covermeta">
+    <div><b>Edition</b>July 2026 · supersedes v1.0</div>
+    <div><b>Scope</b>Single-reader deployment · user-agnostic by design</div>
+    <div><b>Status</b>Specification — approved design direction, pre-build</div>
+  </div>
+
+  <div class="abstract">
+    <h2>Abstract</h2>
+    <p>Marginalia is a personal reading system with a single conviction at its centre: a good librarian does not guess. It remembers everything you have read, understands <em>why</em> you loved what you loved, and hands you the next book with a confident, defensible reason. This paper specifies a tool that tracks a personal library, captures ratings across multiple dimensions, builds a quantified model of one reader's taste, and recommends the next book by explicit mathematics — with a Discovery Range control that lets the reader trade familiarity for adventure.</p>
+    <p>Version 2.0 replaces the v1.0 design language in full. The librarian remains the <em>concept</em> — memory, judgement, transparency, care — but the interface is a quiet, modern product: porcelain surfaces, hairline structure, restrained ultramarine, editorial serif reserved for book titles, and a secondary palette of four deep shelf tones. The system opens knowing <strong>nothing</strong>: every account — including the author's own — begins as an empty ledger and earns its model through a designed first run (§5.7, §7.9), so the tool works identically for any reader from day zero. The recommendation mathematics, data model, feature set, architecture and risk register carry forward unchanged in substance and are restated here so this document is the single source of truth for the build.</p>
+  </div>
+</header>
+
+<!-- ================= TOC ================= -->
+<section class="chapter" id="toc">
+  <div class="chaphead">
+    <div class="no">Front matter</div>
+    <h2>Contents</h2>
+  </div>
+  <nav class="toc">
+    <a href="#vision"><span class="n">I</span>Vision &amp; principles</a>
+    <a href="#problem"><span class="n">II</span>The problem</a>
+    <a href="#overview"><span class="n">III</span>System overview</a>
+    <a href="#data"><span class="n">IV</span>The data model</a>
+    <a href="#maths"><span class="n">V</span>The mathematics of taste</a>
+    <a href="#drift"><span class="n">VI</span>The Discovery Range</a>
+    <a href="#features"><span class="n">VII</span>Features &amp; surfaces</a>
+    <a href="#atlas"><span class="n">VIII</span>Charts &amp; the Atlas</a>
+    <a href="#design"><span class="n">IX</span>Design system: Porcelain &amp; Ink</a>
+    <a href="#tech"><span class="n">X</span>Technical architecture</a>
+    <a href="#risks"><span class="n">XI</span>Risk register</a>
+    <a href="#roadmap"><span class="n">XII</span>Roadmap</a>
+    <a href="#appendix"><span class="n">XIII</span>Appendix</a>
+  </nav>
+</section>
+<!-- ================= I ================= -->
+<section class="chapter" id="vision">
+  <div class="chaphead"><div class="no">Chapter I</div><h2>Vision &amp; principles</h2></div>
+
+  <p class="lede">Every great library once had a person in it who knew you — who noticed what you devoured and what you returned early, and quietly set something aside for your next visit. Marginalia rebuilds that person as software, and gives them a calculator.</p>
+
+  <p>The tool has one job with three parts: <strong>track</strong> everything read (and abandoned), <strong>understand</strong> the shape of one reader's taste as a measurable object, and <strong>recommend</strong> the next book with an explicit, inspectable score — never a black box, never a shrug. It is a private instrument first; multi-user support is a planned future edition, and every architectural decision here is made so that opening the doors later means adding rooms, not rebuilding foundations.</p>
+
+  <p>The librarian is a <em>concept</em>, not a costume. It lives in how the product behaves — memory, judgement, transparency, honest uncertainty — never in skeuomorphic decoration. The interface is a contemporary product that happens to be about books.</p>
+
+  <h3>Design principles</h3>
+  <ol class="plain">
+    <li><strong>The librarian shows their working.</strong> Every recommendation arrives with its mathematics attached: the similarity scores, the books that drove it, the confidence interval. A recommendation you can interrogate is one you can trust — and correcting it teaches the system.</li>
+    <li><strong>Low-friction logging or no logging.</strong> Adding a finished book must take under fifteen seconds: search, tap, done. Everything else — pages, covers, metadata — is fetched automatically.</li>
+    <li><strong>Taste is multi-dimensional.</strong> A single five-star scale cannot distinguish “brilliant ideas, cardboard characters” from “gorgeous prose, glacial plot.” Marginalia rates on axes, because the axes are what the mathematics feeds on.</li>
+    <li><strong>Negative data is data.</strong> A book abandoned at 20% is one of the most informative signals a reader can give. DNFs are first-class records with their own taxonomy of reasons — recorded without guilt or theatre.</li>
+    <li><strong>Comfort is a setting, not a cage.</strong> The reader — not the algorithm — decides how adventurous today's pick should be, via a visible control (the Discovery Range, Chapter VI).</li>
+    <li><strong>The reader owns the ledger.</strong> All data exports in one click as human-readable JSON. No lock-in, no silent cloud dependence.</li>
+    <li><strong>Quiet confidence.</strong> The interface stays out of the way: generous space, few colours, typography doing the work. The one place it raises its voice is the single accent that marks a decision.</li>
+  </ol>
+
+  <div class="pull-quote">A recommendation is a hypothesis about you. Marginalia states the hypothesis, tests it, and updates.</div>
+</section>
+
+<!-- ================= II ================= -->
+<section class="chapter" id="problem">
+  <div class="chaphead"><div class="no">Chapter II</div><h2>The problem</h2></div>
+
+  <p class="lede">The reader in question has read a great deal of science fiction and tracked none of it. The record lives in memory, an Audible library, and a vague sense of “I think I've read that one.”</p>
+
+  <p>This creates four concrete failures:</p>
+  <ul class="plain">
+    <li><strong>The rediscovery problem.</strong> Without a ledger, past reading can't inform future choice. What made <em>Project Hail Mary</em> land so hard — the voice, the problem-of-the-week structure, the competence, the humour? Untracked, that knowledge decays.</li>
+    <li><strong>The choice paralysis problem.</strong> Facing an infinite bookshop, most readers default to whatever a retailer's popularity engine surfaces. Those engines optimise for the average customer and for sales, not for <em>you</em>.</li>
+    <li><strong>The rut problem.</strong> Left alone, taste-matching engines converge: love one competent-engineer-solves-space-problems book and you'll be offered forty more, each slightly worse. Discovery requires deliberate, controlled deviation — which no mainstream engine hands to the user as a control.</li>
+    <li><strong>The evidence problem.</strong> “4 stars” is lossy. Two books can earn it for opposite reasons, and a recommender trained on the aggregate learns almost nothing.</li>
+  </ul>
+
+  <p>Existing tools each solve a fragment. Goodreads tracks but recommends poorly and is socially noisy. StoryGraph rates on moods but keeps its model opaque. Retail engines recommend but serve the shop. None offer a personal, transparent, mathematically explicit librarian whose only client is one reader. That is the gap Marginalia occupies.</p>
+</section>
+
+<!-- ================= III ================= -->
+<section class="chapter" id="overview">
+  <div class="chaphead"><div class="no">Chapter III</div><h2>System overview</h2></div>
+
+  <p class="lede">Marginalia is a loop. Books flow in through logging; ratings turn them into signal; the signal shapes a taste model; the model, moderated by the Discovery Range, produces recommendations; reading those produces new ratings; the loop closes and tightens.</p>
+
+  <figure>
+    <div class="frame">
+    <svg viewBox="0 0 800 330" role="img" aria-label="System loop: log, rate, model, recommend, read, repeat" style="width:100%;height:auto;">
+      <defs>
+        <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="#3546E8"/>
+        </marker>
+      </defs>
+      <text x="24" y="34" font-family="Instrument Sans" font-size="11.5" letter-spacing="2.5" fill="#9A9DA6" font-weight="600">FIG. 1 — THE LOOP</text>
+      <g font-family="Instrument Sans">
+        <g>
+          <rect x="40" y="80" width="128" height="66" rx="12" fill="#F7F7F4" stroke="#E7E7E2"/>
+          <text x="104" y="109" text-anchor="middle" font-size="14" font-weight="600" fill="#17181C">Log</text>
+          <text x="104" y="128" text-anchor="middle" font-size="11" fill="#5B5E66">books in, via API</text>
+        </g>
+        <g>
+          <rect x="216" y="80" width="128" height="66" rx="12" fill="#F7F7F4" stroke="#E7E7E2"/>
+          <text x="280" y="109" text-anchor="middle" font-size="14" font-weight="600" fill="#17181C">Rate</text>
+          <text x="280" y="128" text-anchor="middle" font-size="11" fill="#5B5E66">six-axis signal</text>
+        </g>
+        <g>
+          <rect x="392" y="80" width="140" height="66" rx="12" fill="#151B33"/>
+          <text x="462" y="109" text-anchor="middle" font-size="14" font-weight="600" fill="#FFFFFF">Model</text>
+          <text x="462" y="128" text-anchor="middle" font-size="11" fill="#9BA3C4">taste vector T</text>
+        </g>
+        <g>
+          <rect x="580" y="80" width="150" height="66" rx="12" fill="#F7F7F4" stroke="#E7E7E2"/>
+          <text x="655" y="109" text-anchor="middle" font-size="14" font-weight="600" fill="#17181C">Recommend</text>
+          <text x="655" y="128" text-anchor="middle" font-size="11" fill="#5B5E66">scored shortlist</text>
+        </g>
+        <g>
+          <rect x="330" y="230" width="128" height="66" rx="12" fill="#F7F7F4" stroke="#E7E7E2"/>
+          <text x="394" y="259" text-anchor="middle" font-size="14" font-weight="600" fill="#17181C">Read</text>
+          <text x="394" y="278" text-anchor="middle" font-size="11" fill="#5B5E66">the human part</text>
+        </g>
+        <!-- discovery range note -->
+        <g>
+          <rect x="596" y="196" width="118" height="30" rx="8" fill="#EDEFFE"/>
+          <text x="655" y="215" text-anchor="middle" font-size="11" font-weight="600" fill="#2635B8">Discovery Range</text>
+        </g>
+      </g>
+      <g stroke="#3546E8" stroke-width="1.8" fill="none" marker-end="url(#arr)">
+        <line x1="168" y1="113" x2="212" y2="113"/>
+        <line x1="344" y1="113" x2="388" y2="113"/>
+        <line x1="532" y1="113" x2="576" y2="113"/>
+        <line x1="655" y1="146" x2="655" y2="192"/>
+        <path d="M 640 226 C 560 268, 500 263, 462 263"/>
+        <path d="M 330 263 C 170 263, 104 220, 104 150"/>
+      </g>
+      <text x="140" y="300" font-family="Instrument Sans" font-size="12" font-style="italic" fill="#9A9DA6">each pass around the loop sharpens the model</text>
+    </svg>
+    </div>
+    <figcaption><b>Fig. 1.</b> The circulation loop. The taste model (midnight card) is the only component the reader never edits directly — it is shaped entirely by logging and rating, and expressed entirely through recommendation.</figcaption>
+  </figure>
+
+  <h3>The surfaces</h3>
+  <p>The product is organised as six primary surfaces reached from a single top navigation, plus one secondary surface. Each is specified in Chapter VII; in brief:</p>
+  <table>
+    <tr><th style="width:26%">Surface</th><th>Purpose</th></tr>
+    <tr><td>Library</td><td>The full ledger — every book read, reading, abandoned or queued; search, filters, and each book's profile.</td></tr>
+    <tr><td>For you</td><td>Recommendations: the hero pick with its reasoning, the shortlist, and the Discovery Range.</td></tr>
+    <tr><td>Reading</td><td>What is open now — progress, pace, projected finish date.</td></tr>
+    <tr><td>Queue</td><td>To-be-read, ordered by live model score, with staleness handling.</td></tr>
+    <tr><td>Atlas</td><td>Every chart: the taste radar, the map of your library, sensitivity, the model's report card.</td></tr>
+    <tr><td>Review</td><td>The 60-second rating flow on finishing (or abandoning) a book.</td></tr>
+    <tr><td>Not for you</td><td>Secondary: anti-recommendations with reasoning shown, each carrying an override.</td></tr>
+  </table>
+</section>
+
+<!-- ================= IV ================= -->
+<section class="chapter" id="data">
+  <div class="chaphead"><div class="no">Chapter IV</div><h2>The data model</h2></div>
+
+  <p class="lede">Everything Marginalia knows lives in four record types: the <strong>Book</strong>, the <strong>Reading Record</strong>, the <strong>Rating</strong>, and the <strong>Taste Profile</strong>. The first three are facts; the fourth is inference.</p>
+
+  <h3>4.1 The Book record</h3>
+  <p>A book enters the library via search against the Open Library and Google Books APIs — title, author, ISBN, cover, page count, publication year and subject tags arrive automatically. On top of the fetched metadata, Marginalia attaches its own <strong>profile</strong>: the numerical description the mathematics operates on.</p>
+
+  <div class="panel">
+    <div class="phead">Record · <b>Book</b> — core fields</div>
+    <table>
+      <tr><th>Field</th><th>Type</th><th>Notes</th></tr>
+      <tr><td><code>id, isbn, title, author</code></td><td>text</td><td>Fetched. Author normalised to a canonical record for the author map.</td></tr>
+      <tr><td><code>series, series_index</code></td><td>text, int</td><td>Bobiverse #3 must know it is Bobiverse #3 — series logic depends on it.</td></tr>
+      <tr><td><code>pages, audio_hours</code></td><td>int, float</td><td>Both stored. Audio runtime is a first-class citizen, not an afterthought.</td></tr>
+      <tr><td><code>narrator</code></td><td>text</td><td>Narrators materially affect enjoyment; Ray Porter is a feature.</td></tr>
+      <tr><td><code>year, publisher, cover_url</code></td><td>misc</td><td>Fetched; cover cached locally to survive API changes.</td></tr>
+      <tr><td><code>subjects[]</code></td><td>text[]</td><td>Raw API subject tags — messy, kept for provenance.</td></tr>
+      <tr><td><code>features</code></td><td>vector</td><td>The clean numerical profile, below.</td></tr>
+    </table>
+  </div>
+
+  <h3>4.2 The book profile: twelve tone axes</h3>
+  <p>Raw genre tags are too coarse (“science fiction” describes both <em>Project Hail Mary</em> and <em>Dhalgren</em>, which share almost nothing). Marginalia describes every book along <strong>twelve tone axes</strong>, each 0 to 1, plus a bag of theme tags. Axis values are seeded automatically — from subject tags, series data and a lookup table of common titles — then adjustable by the reader, because the reader's perception is the ground truth that matters.</p>
+
+  <div class="panel">
+    <div class="phead">The <b>twelve tone axes</b> — every book becomes a point in this space</div>
+    <table>
+      <tr><th style="width:32%">Axis (0 → 1)</th><th>Left pole</th><th>Right pole</th></tr>
+      <tr><td><code>hardness</code></td><td>Soft / social SF</td><td>Rigorous hard SF</td></tr>
+      <tr><td><code>pace</code></td><td>Contemplative</td><td>Propulsive</td></tr>
+      <tr><td><code>tone</code></td><td>Bleak</td><td>Hopeful / funny</td></tr>
+      <tr><td><code>scope</code></td><td>One room, one ship</td><td>Galactic, deep time</td></tr>
+      <tr><td><code>character_depth</code></td><td>Ideas carry it</td><td>Characters carry it</td></tr>
+      <tr><td><code>prose_style</code></td><td>Transparent, functional</td><td>Literary, ornate</td></tr>
+      <tr><td><code>problem_solving</code></td><td>Mystery / politics</td><td>Engineering puzzles</td></tr>
+      <tr><td><code>military</code></td><td>None</td><td>Mil-SF core</td></tr>
+      <tr><td><code>humour</code></td><td>Straight-faced</td><td>Comic voice</td></tr>
+      <tr><td><code>structure</code></td><td>Single linear POV</td><td>Multi-timeline mosaic</td></tr>
+      <tr><td><code>darkness</code></td><td>Cosy</td><td>Grim / horror-adjacent</td></tr>
+      <tr><td><code>accessibility</code></td><td>Demands work</td><td>Instantly readable</td></tr>
+    </table>
+    <p class="caption" style="font-size:13px; margin:6px 0 0">The axes are general to the genre, but were stress-tested against one concrete taste profile: they can place propulsive problem-solvers (Weir, Bobiverse), big-idea epics (Children of Time), and common aversions (military-heavy SF, multi-timeline mosaics, heavily literary or bleak novels) at clearly distinct coordinates. Any reader's loves and aversions receive the same treatment — the space carries no assumptions about whose taste will land in it.</p>
+  </div>
+
+  <h3>4.3 The Reading Record</h3>
+  <p>A Reading Record is one encounter between the reader and a book. Re-reads create new records — a book loved at 19 and re-read at 25 is two data points, and the model weights the recent one more heavily.</p>
+  <ul class="plain">
+    <li><strong>Status:</strong> <code>queued → reading → finished | abandoned | paused</code>. Paused books prompt gently after 30 days: shelve or resume.</li>
+    <li><strong>Format:</strong> audio / print / ebook, with sessions optionally logged (date, minutes or pages) to power pace statistics.</li>
+    <li><strong>Dates:</strong> started, finished. From these: days-to-finish, hours-per-week, seasonal patterns.</li>
+    <li><strong>DNF taxonomy:</strong> abandonment asks for one reason from a fixed list — <em>pacing, tone, characters, prose, lost interest, too grim, too confusing, wrong mood (no fault)</em>. “Wrong mood” is crucial: it tells the model to suppress the book, not to punish its features. The UI treats stopping as neutral information: “Stopped at 31%”, quiet grey, no theatre.</li>
+  </ul>
+
+  <h3>4.4 The Rating record — six axes and a verdict</h3>
+  <p>On finishing, the Review flow asks for five quick axis scores (0–10 sliders), one overall verdict (half-star precision, 0.5–5.0), and one binary question that carries enormous signal: <strong>“Would you re-read this?”</strong></p>
+
+  <div class="panel">
+    <div class="phead">Record · <b>Rating</b> — the six axes</div>
+    <table>
+      <tr><th>Axis</th><th>Question asked</th></tr>
+      <tr><td>Ideas</td><td>Did the concepts thrill you?</td></tr>
+      <tr><td>Pace</td><td>Did it pull you forward?</td></tr>
+      <tr><td>Characters</td><td>Did you care who lived?</td></tr>
+      <tr><td>Prose</td><td>Did the sentences serve the story?</td></tr>
+      <tr><td>Ending</td><td>Did it stick the landing?</td></tr>
+      <tr><td><strong>Verdict</strong></td><td>Overall, in half-stars — plus <em>re-read? yes/no</em> and up to three mood tags (<code>gripping · cosy · mind-bending · funny · moving · exhausting…</code>).</td></tr>
+    </table>
+  </div>
+
+  <h3>4.5 The Taste Profile</h3>
+  <p>The Taste Profile is not entered by anyone; it is <em>computed</em> — a weighted centroid in the twelve-axis space, plus learned per-axis sensitivities. It is fully visible in the Atlas as the taste radar, and fully recomputable from the ledger at any time. Delete it and it regrows. This is what makes the eventual multi-user edition cheap: a new user is simply an empty ledger and a fresh profile.</p>
+</section>
+<!-- ================= V ================= -->
+<section class="chapter" id="maths">
+  <div class="chaphead"><div class="no">Chapter V</div><h2>The mathematics of taste</h2></div>
+
+  <p class="lede">This is the engine room. The recommender is content-based, transparent, and built to work well from roughly fifteen rated books — because a personal tool cannot wait for the thousands of users that collaborative filtering needs. Five stages: represent, weigh, compare, predict, select.</p>
+
+  <h3>5.1 Stage one — represent: the book vector</h3>
+  <div class="formula">
+    <b>x</b><sub>b</sub> = [ a<sub>1</sub>, a<sub>2</sub>, … a<sub>12</sub> &nbsp;|&nbsp; t<sub>1</sub> … t<sub>m</sub> ]
+    <span class="fnote">a<sub>i</sub> ∈ [0,1] are the tone axes; t<sub>j</sub> are TF-IDF-weighted theme tags (first-contact, AI, uplift, generation-ship, time-dilation…), so a rare shared theme counts for more than a ubiquitous one. All vectors are L2-normalised. Tone axes are weighted ×2 relative to tags in v1: axes are hand-curated and dense, tags are noisy.</span>
+  </div>
+  <p>The rest of the pipeline treats the vector as opaque, so a synopsis-embedding component can be concatenated later (§10.4) without touching anything downstream.</p>
+
+  <h3>5.2 Stage two — weigh: turning ratings into signal</h3>
+  <p>Each finished (or abandoned) book contributes with a signed weight built from three parts: how strongly the reader felt, how recently they read it, and whether the signal was positive or negative.</p>
+  <div class="formula">
+    w<sub>b</sub> = s(r<sub>b</sub>) · e<sup>−Δt<sub>b</sub>/τ</sup>
+    <span class="fnote">s(r) maps the verdict to a signed strength: 5.0★→+1.0, 4.0★→+0.55, 3.0★→+0.1, 2.0★→−0.5, 1.0★→−1.0. A DNF (except “wrong mood”) maps to −0.75. Δt is months since finishing; τ = 24 months, so a rating from two years ago carries ~37% of a fresh one. Taste drifts; the model drifts with it. The <em>re-read? yes</em> flag multiplies the weight by 1.3. “Wrong mood” DNFs receive w = 0: suppressed from recommendation for six months, never allowed to poison the features they carry.</span>
+  </div>
+
+  <h3>5.3 Stage three — compare: the taste vector and similarity</h3>
+  <div class="formula">
+    <b>T</b> = Σ<sub>b</sub> w<sub>b</sub> · <b>x</b><sub>b</sub> / Σ<sub>b</sub> |w<sub>b</sub>| &nbsp;&nbsp;&nbsp; sim(c) = cos(<b>T</b>, <b>x</b><sub>c</sub>)
+    <span class="fnote">Because weights are signed, disliked books actively push <b>T</b> away from their coordinates: the taste vector encodes aversions, not just affections. Similarity of any candidate to the reader is then a single cosine in [−1, 1].</span>
+  </div>
+
+  <h3>5.4 Stage four — predict: the expected verdict, with honest uncertainty</h3>
+  <p>Similarity says “this is near your centre of mass”; the reader wants a sharper claim: <em>“you will probably rate this 4.5.”</em> Marginalia predicts the verdict with a similarity-weighted k-nearest-neighbours estimate over the reader's own rated books, shrunk toward their personal mean — the same empirical-Bayes instinct that stops a striker with two goals in two games being declared the best in the league.</p>
+  <div class="formula">
+    r̂(c) = ( Σ<sub>k∈K</sub> sim(c,k)<sup>3</sup> · r<sub>k</sub> + λ·r̄ ) / ( Σ<sub>k∈K</sub> sim(c,k)<sup>3</sup> + λ )
+    <span class="fnote">K = the 7 rated books most similar to candidate c; sim is cubed so near neighbours dominate; r̄ = the reader's mean verdict; λ = 1.5 is the shrinkage strength. Close, unanimous neighbours → confident, barely-shrunk prediction. A candidate far from everything rated → prediction collapses toward the mean and the interval widens, which is the honest answer.</span>
+  </div>
+  <p>Every prediction ships with a confidence band derived from neighbour agreement and distance, rendered as the ring gauge on the hero card: <strong class="num">4.5 ± 0.3</strong>. Wide bands are not hidden; they are an invitation to adventure.</p>
+
+  <h3>5.5 Stage five — select: novelty, diversity, and the final score</h3>
+  <p>Ranking purely by predicted rating produces the rut of Chapter II. Two corrections apply. First, a <strong>novelty measure</strong> — each candidate's distance from everything already read:</p>
+  <div class="formula">
+    nov(c) = 1 − max<sub>b∈read</sub> cos(<b>x</b><sub>c</sub>, <b>x</b><sub>b</sub>) &nbsp;&nbsp;&nbsp; Score(c) = (1−δ)·r̂(c)/5 + δ·nov(c)
+    <span class="fnote">δ ∈ [0, 0.6] is set by the Discovery Range (Chapter VI). At δ=0 the librarian plays it safe; at δ=0.6 nearly half the score rewards unfamiliarity.</span>
+  </div>
+  <p>Second, the shortlist of five is assembled by <strong>maximal marginal relevance</strong>: each next pick must score well <em>and</em> differ from picks already on the list, so the shortlist spans the reader's taste rather than clustering at its centre:</p>
+  <div class="formula">
+    pick<sub>i</sub> = argmax<sub>c</sub> [ 0.75·Score(c) − 0.25·max<sub>p∈picks</sub> cos(<b>x</b><sub>c</sub>, <b>x</b><sub>p</sub>) ]
+  </div>
+
+  <h3>5.6 Hard filters and standing rules</h3>
+  <p>Before any scoring, candidates pass through deterministic filters the reader controls directly: already-read (unless re-read mode), series entries out of order (book 3 never offered before book 1), runtime window (default 8–14 audio hours, adjustable), active suppressions, and any standing rule the reader writes (“never recommend book one of an unfinished trilogy” is expected to be rule number one). Filters are visible and editable in settings — the librarian's standing orders.</p>
+
+  <h3>5.7 Cold start: day zero</h3>
+  <p>Every account starts at exactly zero. There is no pre-loaded history, no assumed taste, no special path for any particular reader — the author's own account is created the same way as anyone else's. On first run the taste vector does not exist, and the first-run flow (§7.9) offers three ways to create it, usable in any mix:</p>
+  <ul class="plain">
+    <li><strong>Calibration.</strong> The reader is dealt ~20 well-known SF titles spanning the twelve axes — Weir to Le Guin, Bobiverse to Blindsight — and rates the ones they know, skipping freely. Even a dozen quick ratings sketch the taste polygon (Appendix XIII lists the deck and its selection criteria).</li>
+    <li><strong>Backfill.</strong> The reader logs books they have actually read, in a rapid-fire flow built for exactly this: search, tap the rough year read, drop a verdict, next. Real history is the highest-quality signal the model can get.</li>
+    <li><strong>Stated preferences.</strong> Likes and aversions the reader simply <em>knows</em> — “no military SF”, “nothing over 20 hours”, “love engineering puzzles” — entered as standing preferences and hard filters (§5.6), never as fake ratings. These constrain recommendations immediately, before any ratings exist.</li>
+  </ul>
+  <p>Below roughly ten rated books, the model is honest about its ignorance: the For You surface carries a visible <span class="tag">Learning</span> state, predictions show deliberately wide bands, picks lean on stated preferences and broadly loved titles labelled as such, and a progress line makes the contract explicit — <em>“Rate 6 more books to unlock confident predictions.”</em> Trust is built by admitting what the model does not yet know.</p>
+
+  <h3>5.8 Learning per-axis sensitivity</h3>
+  <p>Not every axis matters equally to every reader. Once ~25 ratings exist, Marginalia fits a small ridge regression of verdicts on tone axes to learn <em>which dimensions actually drive this reader's joy</em> — e.g., discovering that <code>pace</code> and <code>problem_solving</code> predict their verdicts strongly while <code>prose_style</code> barely registers. The learned sensitivities re-weight the similarity metric and are displayed openly in the Atlas as “What actually moves you.” The mathematics stops being a formula about books and becomes a statement about the reader.</p>
+</section>
+
+<!-- ================= VI ================= -->
+<section class="chapter" id="drift">
+  <div class="chaphead"><div class="no">Chapter VI</div><h2>The Discovery Range</h2></div>
+
+  <p class="lede">The Discovery Range is the reader's hand on the tiller — a single visible control that answers the question every recommender silently decides for you: <em>how far from home should tonight's book be?</em></p>
+
+  <p>Mechanically it is one number, δ, feeding the scoring formula of §5.5. In the interface it is a clean five-stop slider — a hairline track, a filled segment, a ringed current stop — with each position a named posture rather than a percentage:</p>
+
+  <figure>
+    <div class="frame">
+    <svg viewBox="0 0 800 250" role="img" aria-label="The Discovery Range: five stops from Comfort to Unknown" style="width:100%;height:auto;">
+      <text x="24" y="34" font-family="Instrument Sans" font-size="11.5" letter-spacing="2.5" fill="#9A9DA6" font-weight="600">FIG. 2 — THE DISCOVERY RANGE</text>
+      <!-- track -->
+      <line x1="80" y1="110" x2="720" y2="110" stroke="#E7E7E2" stroke-width="4" stroke-linecap="round"/>
+      <line x1="80" y1="110" x2="240" y2="110" stroke="#3546E8" stroke-width="4" stroke-linecap="round"/>
+      <!-- stops -->
+      <g>
+        <circle cx="80" cy="110" r="7" fill="#3546E8"/>
+        <circle cx="240" cy="110" r="11" fill="#FFFFFF" stroke="#3546E8" stroke-width="2.5"/>
+        <circle cx="240" cy="110" r="17" fill="none" stroke="#EDEFFE" stroke-width="5"/>
+        <circle cx="400" cy="110" r="7" fill="#FFFFFF" stroke="#E7E7E2" stroke-width="2.5"/>
+        <circle cx="560" cy="110" r="7" fill="#FFFFFF" stroke="#E7E7E2" stroke-width="2.5"/>
+        <circle cx="720" cy="110" r="7" fill="#FFFFFF" stroke="#E7E7E2" stroke-width="2.5"/>
+      </g>
+      <!-- labels -->
+      <g font-family="Instrument Sans" font-size="12.5" fill="#5B5E66" text-anchor="middle">
+        <text x="80" y="146">Comfort</text>
+        <text x="240" y="146" fill="#2635B8" font-weight="600">Familiar</text>
+        <text x="400" y="146">Adjacent</text>
+        <text x="560" y="146">Far</text>
+        <text x="720" y="146">Unknown</text>
+      </g>
+      <g font-family="Instrument Sans" font-size="11" fill="#9A9DA6" text-anchor="middle">
+        <text x="80" y="164">δ 0.00</text>
+        <text x="240" y="164">δ 0.12</text>
+        <text x="400" y="164">δ 0.25</text>
+        <text x="560" y="164">δ 0.42</text>
+        <text x="720" y="164">δ 0.60</text>
+      </g>
+      <text x="400" y="212" text-anchor="middle" font-family="Newsreader" font-style="italic" font-size="15" fill="#5B5E66">the shortlist re-ranks live as the control moves</text>
+    </svg>
+    </div>
+    <figcaption><b>Fig. 2.</b> Five stops, one parameter. The position persists per session, and the Atlas later shows how books discovered at each range actually scored — the reader's own evidence for whether adventure pays.</figcaption>
+  </figure>
+
+  <h4>Behavioural details</h4>
+  <ul class="plain">
+    <li><strong>The wildcard slot.</strong> At Far and Unknown, the fifth shortlist position is reserved for a pure-novelty pick: high nov(c), prediction honestly shown as <em>unscored</em>, marked with a small <span class="tag">Wildcard</span> tag. It is framed as a dare, not a promise.</li>
+    <li><strong>Range accounting.</strong> Every recommendation records the δ at which it was issued. Over time the panel beneath the control shows the reader's real average rating at the selected range — <em>“4.3 avg across 61 books”</em> — so the choice is informed by their own evidence. If Far-range picks average 4.2, the reader learns something true: their comfort zone was drawn too small.</li>
+    <li><strong>No silent drift.</strong> The system never changes δ on its own. If six consecutive picks came from one tight cluster it may <em>suggest</em> widening the range — one quiet line, dismissible — but the hand on the control is always the reader's.</li>
+  </ul>
+</section>
+
+<!-- ================= VII ================= -->
+<section class="chapter" id="features">
+  <div class="chaphead"><div class="no">Chapter VII</div><h2>Features &amp; surfaces</h2></div>
+
+  <p class="lede">Chapter III named the surfaces; this chapter furnishes them. Each subsection specifies what the surface does and the small decisions that make it pleasant rather than merely functional.</p>
+
+  <h3>7.1 Library</h3>
+  <p>Every book ever logged, as a clean card grid: cover block (real cover, or a shelf-tone placeholder with the title set in serif), title, author, rating, format. Hovering a card reveals its profile — the tone-axis bars — in a quiet white overlay; clicking opens the full book page with the reader's six-axis rating, mood tags, dates, notes, and the editable tone axes. Search is instant across every field; filters combine (author, series, year read, rating range, mood, format, discovery range at recommendation). A dense table view sits one keystroke away (<code>V</code>) for when the reader wants the ledger, not the shelf.</p>
+
+  <h3>7.2 For you</h3>
+  <p>The recommendation surface, and the product's centrepiece. At the top, the <strong>hero pick</strong> — one book, not a wall of covers:</p>
+  <div class="panel">
+    <div class="phead">The <b>hero pick</b> — anatomy</div>
+    <ul class="plain">
+      <li><strong>The book</strong> — cover, serif title, author, meta pills (standalone/series, runtime, narrator).</li>
+      <li><strong>The prediction</strong> — a ring gauge: <span class="num"><strong>4.5</strong> ± 0.3</span>, with the confidence stated in words (“high confidence”).</li>
+      <li><strong>The reasoning</strong> — two plain-English sentences generated from the actual mathematics: <em>“Strongest on pace and humour, your two highest-sensitivity axes, with the problem-solving spine you consistently rate. Lighter on hard science than your average five-star; no military content.”</em></li>
+      <li><strong>The evidence chips</strong> — the three rated books that drove the prediction, each with its similarity: <em>Project Hail Mary · 0.91</em>.</li>
+      <li><strong>The actions</strong> — <em>Start reading</em> (primary), <em>Add to queue</em>, <em>Not for me</em> (a negative signal with optional reason).</li>
+    </ul>
+  </div>
+  <p>Below the hero: the Discovery Range panel (Chapter VI) beside the <strong>shortlist</strong> — five ranked rows, each with serif title, meta line, predicted rating and band, re-ranking live with a subtle stagger as the range moves. A free-text <strong>Ask</strong> field accepts natural-language moods — “like Project Hail Mary but sadder”, “something cosy under 10 hours” — parsed into axis targets and filters.</p>
+
+  <h3>7.3 Reading</h3>
+  <p>Whatever is open right now: progress (hours listened or pages turned), a pace sparkline, and a <strong>projected finish date</strong> computed from the last fortnight's pace — quietly useful for deciding whether the next book fits before a trip. Session logging is optional and one tap. Multiple concurrent books are supported without judgement.</p>
+
+  <h3>7.4 Review</h3>
+  <p>The rating flow of §4.4, designed to take under sixty seconds: five sliders, one half-star verdict, the re-read question, up to three mood chips, an optional line of notes. Confirmation is a single clean transition — the book slides into the Library grid with its rating attached. Abandoning a book routes here too, asking only for the reason: one tap, neutral grey, no guilt. The ledger simply records the truth.</p>
+
+  <h3>7.5 Queue</h3>
+  <p>To-be-read with two honest mechanics. <strong>Priority:</strong> entries are ordered by current model score, so the queue re-sorts itself as taste drifts — the book added eight months ago in a different mood sinks naturally. <strong>Staleness:</strong> anything untouched for a year surfaces a quiet prompt with a one-tap “remove” — a 300-book guilt pile is where reading joy goes to die. Target steady-state: 10–25.</p>
+
+  <h3>7.6 Atlas</h3>
+  <p>All visualisation — specified in Chapter VIII.</p>
+
+  <h3>7.7 Not for you</h3>
+  <p>The inverse surface: books and <em>regions of taste-space</em> the model predicts the reader would dislike, each with its reasoning shown. Two purposes. First, transparency — seeing <em>why</em> the model steers away from mil-SF epics makes its positive picks legible too. Second, correction — every anti-recommendation carries an “I'd try this anyway” override, a high-value training signal and the honest escape hatch from any bubble the model might build. This is the feature that keeps the librarian humble.</p>
+
+  <h3>7.8 Cross-cutting features</h3>
+  <div class="cardgrid">
+    <div class="panel"><h5>Series intelligence</h5><p>Finishing book n of a loved series auto-surfaces book n+1 as a standing candidate, exempt from the Discovery Range. Series can be marked “complete for me”.</p></div>
+    <div class="panel"><h5>Import &amp; backfill</h5><p>CSV import mapped from Goodreads/StoryGraph exports; a fast backfill mode for logging years of past reading in one sitting — search, tap year read, rough verdict, next.</p></div>
+    <div class="panel"><h5>Narrator intelligence</h5><p>Narrators are rated implicitly through the books they carry; the Atlas surfaces “narrators you trust”, and For You can filter by them.</p></div>
+    <div class="panel"><h5>The Annual Report</h5><p>Every January, a year-in-review: books, hours, rating distribution, taste-drift map, best discovery, biggest surprise, range hit-rates. Designed to be shareable.</p></div>
+    <div class="panel"><h5>Export &amp; backup</h5><p>One-click JSON export of the entire ledger; automatic weekly snapshot. The reader's history must survive the tool.</p></div>
+    <div class="panel"><h5>Keyboard-first</h5><p><code>/</code> search · <code>N</code> next pick · <code>L</code> log a book · <code>V</code> table view. The tool should be fast in the hand.</p></div>
+  </div>
+
+  <h3>7.9 First run</h3>
+  <p>The first-run flow is the product's front door and, in the eventual public edition, every user's first impression — so it is specified as carefully as any surface. It must take a brand-new reader from an empty ledger to a first defensible recommendation in under ten minutes, without ever pretending to know more than it does.</p>
+  <div class="panel">
+    <div class="phead">The <b>first run</b> — four steps, ~5–10 minutes</div>
+    <ol class="plain">
+      <li><strong>Welcome &amp; the contract.</strong> One screen, three sentences: what Marginalia tracks, how it recommends, and that everything lives in the reader's own ledger and exports freely. No account jargon, no tour.</li>
+      <li><strong>What do you already know about your taste?</strong> Optional stated preferences as tappable chips plus free text — aversions (“no military SF”), constraints (“audiobooks, 8–14 hours”), loves (“engineering puzzles”). Stored as standing preferences and filters (§5.6). Skippable entirely.</li>
+      <li><strong>Rate what you recognise.</strong> The calibration deck: ~20 covers dealt one at a time, half-star rating or a single-tap skip; a live counter shows the taste polygon forming in miniature as ratings land — the model visibly taking shape is the reward for the effort. The reader can stop at any point.</li>
+      <li><strong>Backfill, if you like.</strong> An invitation into rapid-fire logging of real history — search, year read, verdict, next — framed as optional and resumable from the Library at any time.</li>
+    </ol>
+  </div>
+  <p>The flow ends on For You in its <span class="tag">Learning</span> state (§5.7): a first pick with honest wide bands, the Discovery Range live, and a progress line stating exactly what will sharpen the model. Every step after the welcome is skippable — a reader who skips everything simply starts with a blank model, popular-safe suggestions labelled as such, and the same path to precision as everyone else. Nothing in the system depends on who the reader is; the first run <em>is</em> the universal onboarding, which is why the public edition (§10.3) requires no new design.</p>
+</section>
+
+<!-- ================= VIII ================= -->
+<section class="chapter" id="atlas">
+  <div class="chaphead"><div class="no">Chapter VIII</div><h2>Charts &amp; the Atlas</h2></div>
+
+  <p class="lede">The Atlas is where the ledger becomes self-knowledge. Every chart is drawn in the house style — hairline structure, ink lines, the four shelf tones as the only categorical colours — and every chart answers a question the reader would actually ask.</p>
+
+  <table>
+    <tr><th style="width:24%">Chart</th><th style="width:20%">Form</th><th>The question it answers</th></tr>
+    <tr><td>Taste radar</td><td>12-axis radar</td><td>What is the shape of my taste? Overlay: today vs. one year ago — drift made visible.</td></tr>
+    <tr><td>The map</td><td>2-D scatter</td><td>Every book as a point, positioned by feature similarity (PCA), sized by rating, coloured by shelf tone per era. Clusters name themselves: “the competence corner,” “the big-idea cluster.”</td></tr>
+    <tr><td>Sensitivity</td><td>Signed bars</td><td>Which axes actually predict my ratings? (§5.8) — the single most self-revealing chart in the tool.</td></tr>
+    <tr><td>Hours &amp; books</td><td>Timeline</td><td>Reading over weeks and months; seasons, droughts, binges.</td></tr>
+    <tr><td>Rating distribution</td><td>Histogram</td><td>Am I a generous rater? Is my mean drifting up as recommendations improve?</td></tr>
+    <tr><td>Range returns</td><td>Grouped dots</td><td>Actual ratings grouped by the Discovery Range that surfaced them — does adventure pay <em>for me</em>?</td></tr>
+    <tr><td>Author map</td><td>Network</td><td>Authors as nodes, edges by proximity in taste-space; unread authors adjacent to loved clusters shown faintly — a discovery map.</td></tr>
+    <tr><td>The report card</td><td>Scatter, r̂ vs r</td><td>Predicted ratings against actual ones. If the librarian is any good, the dots hug the diagonal; MAE is printed in the corner without excuses.</td></tr>
+  </table>
+
+  <figure>
+    <div class="frame">
+    <svg viewBox="0 0 800 380" role="img" aria-label="Taste radar with twelve axes, today versus last year" style="width:100%;height:auto;">
+      <text x="24" y="34" font-family="Instrument Sans" font-size="11.5" letter-spacing="2.5" fill="#9A9DA6" font-weight="600">FIG. 3 — THE TASTE RADAR (ILLUSTRATIVE)</text>
+      <g transform="translate(290,208)">
+        <g fill="none" stroke="#EFEFEA" stroke-width="1.2">
+          <circle r="128"/><circle r="96"/><circle r="64"/><circle r="32"/>
+        </g>
+        <g stroke="#E7E7E2" stroke-width="1">
+          <line x1="0" y1="0" x2="0" y2="-128"/><line x1="0" y1="0" x2="64" y2="-110.8"/><line x1="0" y1="0" x2="110.8" y2="-64"/><line x1="0" y1="0" x2="128" y2="0"/><line x1="0" y1="0" x2="110.8" y2="64"/><line x1="0" y1="0" x2="64" y2="110.8"/><line x1="0" y1="0" x2="0" y2="128"/><line x1="0" y1="0" x2="-64" y2="110.8"/><line x1="0" y1="0" x2="-110.8" y2="64"/><line x1="0" y1="0" x2="-128" y2="0"/><line x1="0" y1="0" x2="-110.8" y2="-64"/><line x1="0" y1="0" x2="-64" y2="-110.8"/>
+        </g>
+        <polygon points="0,-102 54,-94 100,-58 115,0 39,22 19,33 0,45 -13,22 -22,13 -51,0 -78,-45 -26,-44" fill="#3546E8" fill-opacity=".1" stroke="#3546E8" stroke-width="2" stroke-linejoin="round"/>
+        <polygon points="0,-90 45,-78 88,-51 102,0 51,29 26,44 0,58 -19,34 -32,18 -64,0 -68,-39 -32,-55" fill="none" stroke="#9A9DA6" stroke-width="1.4" stroke-dasharray="5 5" stroke-linejoin="round"/>
+        <g font-family="Instrument Sans" font-size="11" fill="#5B5E66">
+          <text x="0" y="-140" text-anchor="middle">hardness</text>
+          <text x="76" y="-118">pace</text>
+          <text x="122" y="-68">humour</text>
+          <text x="138" y="4">problem-solving</text>
+          <text x="120" y="76">accessibility</text>
+          <text x="72" y="128">scope</text>
+          <text x="0" y="148" text-anchor="middle">character depth</text>
+          <text x="-74" y="128" text-anchor="end">prose style</text>
+          <text x="-120" y="76" text-anchor="end">structure</text>
+          <text x="-140" y="4" text-anchor="end">darkness</text>
+          <text x="-122" y="-68" text-anchor="end">tone</text>
+          <text x="-76" y="-118" text-anchor="end">military</text>
+        </g>
+      </g>
+      <g transform="translate(590,160)" font-family="Instrument Sans" font-size="12" fill="#17181C">
+        <rect x="0" y="-10" width="24" height="11" rx="3" fill="#3546E8" fill-opacity=".1" stroke="#3546E8" stroke-width="1.6"/>
+        <text x="33" y="0">today</text>
+        <line x1="0" y1="22" x2="24" y2="22" stroke="#9A9DA6" stroke-width="1.4" stroke-dasharray="5 5"/>
+        <text x="33" y="26">a year ago</text>
+        <text x="0" y="62" font-family="Newsreader" font-style="italic" font-size="13.5" fill="#5B5E66">the gap between the two</text>
+        <text x="0" y="80" font-family="Newsreader" font-style="italic" font-size="13.5" fill="#5B5E66">shapes is taste drift —</text>
+        <text x="0" y="98" font-family="Newsreader" font-style="italic" font-size="13.5" fill="#5B5E66">measured, not guessed.</text>
+      </g>
+    </svg>
+    </div>
+    <figcaption><b>Fig. 3.</b> The taste radar. High on pace, problem-solving and humour; deliberately low on military and darkness. The dashed ghost of last year's polygon makes drift a picture rather than a feeling.</figcaption>
+  </figure>
+
+  <p>Interaction rules for every Atlas chart: hover reveals the underlying books, click pins them, and each chart exports as a print-quality SVG in the house palette. Charts are built with D3 so they remain fully bespoke rather than library-default.</p>
+</section>
+<!-- ================= IX ================= -->
+<section class="chapter" id="design">
+  <div class="chaphead"><div class="no">Chapter IX</div><h2>Design system: Porcelain &amp; Ink</h2></div>
+
+  <p class="lede">The design language is called <strong>Porcelain &amp; Ink</strong>: a quiet, modern product surface — porcelain white, hairline structure, near-black ink — with one confident ultramarine accent and a secondary palette of four deep shelf tones. The librarian lives in the behaviour and the words; the visual language never dresses up as anything.</p>
+
+  <h3>9.1 Why this direction</h3>
+  <p>Version 1.0 borrowed the physical card catalogue — stamps, ruled paper, mahogany drawers — and it read as costume: janky, effortful, fake. The lesson is recorded here so it is not relearned: <strong>the concept belongs in the logic, not the chrome.</strong> A tool whose whole point is honest mathematics should look the way honest things look — clean, calm, legible, with warmth carried by typography and the books themselves rather than by props. The single permitted literary note is the serif: book titles, big numbers and pull-quotes are set in Newsreader, everything functional in Instrument Sans. The books' covers (and, where covers are absent, the shelf tones) provide all the richness the surfaces deliberately withhold.</p>
+
+  <h3>9.2 Core palette</h3>
+  <table>
+    <tr><th style="width:30%">Colour</th><th style="width:14%">Hex</th><th>Role</th></tr>
+    <tr><td><span class="swatchrow"><span class="swatch" style="background:#F7F7F4"></span>Porcelain</span></td><td class="num">#F7F7F4</td><td>The page. A warm-neutral off-white — never pure white, never cream.</td></tr>
+    <tr><td><span class="swatchrow"><span class="swatch" style="background:#FFFFFF"></span>Surface</span></td><td class="num">#FFFFFF</td><td>Raised panels and cards, on hairline borders and soft real shadows.</td></tr>
+    <tr><td><span class="swatchrow"><span class="swatch" style="background:#17181C"></span>Ink</span></td><td class="num">#17181C</td><td>Primary text and chart lines. Near-black, slightly warm.</td></tr>
+    <tr><td><span class="swatchrow"><span class="swatch" style="background:#5B5E66"></span>Ink 2</span></td><td class="num">#5B5E66</td><td>Secondary text: reasoning, metadata, captions.</td></tr>
+    <tr><td><span class="swatchrow"><span class="swatch" style="background:#9A9DA6"></span>Ink 3</span></td><td class="num">#9A9DA6</td><td>Tertiary: labels, placeholders, de-emphasised states (incl. DNF).</td></tr>
+    <tr><td><span class="swatchrow"><span class="swatch" style="background:#E7E7E2"></span>Hairline</span></td><td class="num">#E7E7E2</td><td>All borders and dividers, 1px. Structure without weight.</td></tr>
+    <tr><td><span class="swatchrow"><span class="swatch" style="background:#3546E8"></span>Ultramarine</span></td><td class="num">#3546E8</td><td>The single accent: primary actions, the current Discovery stop, active nav, links, wildcard tags, prediction ring. Hover state <span class="num">#2635B8</span>; soft field <span class="num">#EDEFFE</span>.</td></tr>
+    <tr><td><span class="swatchrow"><span class="swatch" style="background:#1D7A5F"></span>Positive</span></td><td class="num">#1D7A5F</td><td>Trend-up deltas and success states only. Never decorative.</td></tr>
+  </table>
+  <p class="caption" style="font-size:13.5px">Rule of proportion: the accent should never exceed a few percent of any screen. If ultramarine appears more than three or four times in a viewport, something is being over-emphasised.</p>
+
+  <h3>9.3 The shelf tones</h3>
+  <p>The secondary palette — four deep, clean tones drawn from the approved cover blocks. Each is a gradient pair (base → highlight, at 150°) so surfaces built from them carry subtle depth without ornament.</p>
+  <table>
+    <tr><th style="width:30%">Tone</th><th style="width:26%">Pair</th><th>Usage</th></tr>
+    <tr><td><span class="swatchrow"><span class="swatch duo" style="--a:#33406B;--b:#151B33"></span>Midnight</span></td><td class="num">#33406B → #151B33</td><td rowspan="4" style="font-weight:400">Cover placeholders (title set in serif on the tone) · categorical series in Atlas charts, in this fixed order · the dark card in diagrams · Annual Report section themes · empty-state illustrations. Tones are assigned to a book deterministically (hash of author) so the same book is always the same colour.</td></tr>
+    <tr><td><span class="swatchrow"><span class="swatch duo" style="--a:#1E5C4F;--b:#0C2B24"></span>Forest</span></td><td class="num">#1E5C4F → #0C2B24</td></tr>
+    <tr><td><span class="swatchrow"><span class="swatch duo" style="--a:#7A4A2B;--b:#3C2113"></span>Sepia</span></td><td class="num">#7A4A2B → #3C2113</td></tr>
+    <tr><td><span class="swatchrow"><span class="swatch duo" style="--a:#5B5E66;--b:#26272B"></span>Graphite</span></td><td class="num">#5B5E66 → #26272B</td></tr>
+  </table>
+  <p>Shelf tones are the system's only saturated large surfaces. They never carry UI controls — text set on them is limited to serif titles and small caps labels in off-white (<span class="num">#EDEFF8</span> at ≥ 4.5:1). They give the product its depth and colour while the porcelain chrome stays silent.</p>
+
+  <h3>9.4 Typography</h3>
+  <table>
+    <tr><th style="width:24%">Role</th><th style="width:26%">Face</th><th>Usage</th></tr>
+    <tr><td>Product UI</td><td>Instrument Sans</td><td>Everything functional: navigation, buttons, labels, body copy, tables. Weights 400/500/600 only. Uppercase labels at 11–12px with .12em tracking.</td></tr>
+    <tr><td>Editorial voice</td><td>Newsreader</td><td>Book titles, hero headlines, big numbers, pull-quotes, the Discovery stop name. Weight 500, tight leading, slight negative tracking at display sizes. Italic for the librarian's asides. This is the entire “library” note — used with restraint, it reads as literate; used everywhere, it would read as costume.</td></tr>
+    <tr><td>Data</td><td>Tabular numerals</td><td>All ratings, similarities, deltas and hours use <code>font-variant-numeric: tabular-nums</code> so columns align. No monospace font in the UI.</td></tr>
+  </table>
+
+  <h3>9.5 Shape, depth &amp; spacing</h3>
+  <ul class="plain">
+    <li><strong>Radii:</strong> 20px panels · 16px cards · 10px buttons · 9px inputs · 999px pills. One family, consistently applied.</li>
+    <li><strong>Elevation:</strong> two levels only. Resting: 1px hairline, near-zero shadow. Raised (hero, hover): soft, large, low-opacity real shadow (<code>0 24px 48px −32px rgba(23,24,28,.1)</code>). No inner shadows, no glows.</li>
+    <li><strong>Spacing:</strong> 4px base grid; sections breathe (64px+ between major blocks). Density is the enemy — when in doubt, remove.</li>
+    <li><strong>Covers:</strong> real cover art wherever available, 8px radius, one strong drop shadow on the hero only. Placeholder = shelf-tone gradient + serif title, as approved.</li>
+  </ul>
+
+  <h3>9.6 Motion</h3>
+  <p>Motion is functional and brief: it confirms cause and effect, never performs.</p>
+  <ul class="plain">
+    <li><strong>Shortlist re-rank:</strong> rows fade/translate in with a 45ms stagger when the Discovery Range moves — the one orchestrated moment, because it teaches the control.</li>
+    <li><strong>Hover:</strong> cards lift 3px with shadow; buttons lift 1px. 150–200ms ease.</li>
+    <li><strong>The range control:</strong> fill animates with a soft spring (300ms, small overshoot).</li>
+    <li><strong>Everything else:</strong> instant or a 150ms fade. Full <code>prefers-reduced-motion</code> fallback to crossfades.</li>
+  </ul>
+
+  <h3>9.7 Dark appearance</h3>
+  <p>Deferred, deliberately. If added, it derives from the shelf tones — Graphite surfaces with Midnight accents, warm off-white text — rather than inverting the porcelain palette. It must be designed as its own appearance, not generated; until then the product ships light-only.</p>
+
+  <h3>9.8 Accessibility floor</h3>
+  <p>All text meets WCAG AA on its surface (Ink on Porcelain ≈ 15:1; Ink 2 ≈ 6.5:1; ultramarine reserved for ≥ 14px semibold at ≈ 5.6:1). Charts encode with position or label in addition to colour; the four shelf tones are distinguishable under common colour-vision deficiencies but never the sole encoding. Focus states: 2px ultramarine ring, 2px offset. Full keyboard operation; hit targets ≥ 44px on touch.</p>
+</section>
+
+<!-- ================= X ================= -->
+<section class="chapter" id="tech">
+  <div class="chaphead"><div class="no">Chapter X</div><h2>Technical architecture</h2></div>
+
+  <p class="lede">Local-first, free-tier, zero-backend-until-needed. The entire v1 runs in the browser, costs nothing to host, and keeps the reader's ledger on the reader's machine — with the seams for a multi-user edition already cut.</p>
+
+  <h3>10.1 Stack</h3>
+  <table>
+    <tr><th style="width:28%">Layer</th><th>Choice &amp; rationale</th></tr>
+    <tr><td>Framework</td><td>Next.js (App Router), deployed on Vercel's free tier — consistent with the reader's existing project toolchain, portfolio-friendly. Tailwind with the Porcelain &amp; Ink tokens as the design source of truth.</td></tr>
+    <tr><td>Storage, v1</td><td>IndexedDB via Dexie.js. The ledger is small (even 1,000 books ≈ a few MB); no server, no auth, instant reads. Weekly auto-export to a downloadable JSON snapshot guards against browser-storage loss.</td></tr>
+    <tr><td>Book metadata</td><td>Open Library search + covers API (free, no key) with Google Books as fallback for missing pages/ISBNs. Fetched metadata cached locally; covers cached as blobs.</td></tr>
+    <tr><td>Recommender</td><td>Pure TypeScript in a web worker — vectors of length ~60 over a few hundred books is microseconds of work; no ML infrastructure required or wanted for v1.</td></tr>
+    <tr><td>Charts</td><td>D3 for the Atlas — every chart hand-drawn in the house style. No chart-library defaults.</td></tr>
+    <tr><td>Ask parsing</td><td>Rule-based keyword→axis mapping in v1 (“sadder” → tone −0.2; “under 10 hours” → runtime filter). An optional LLM parse is a later enhancement, never a dependency.</td></tr>
+    <tr><td>PWA</td><td>Installable, offline-capable; the Library and Atlas work fully offline, only metadata search needs the network.</td></tr>
+  </table>
+
+  <h3>10.2 The candidate pool</h3>
+  <p>A recommender needs books it can recommend <em>from</em>. Sources, in order: (1) the reader's own Queue; (2) a curated seed corpus of ~500 notable SF titles with hand-checked profiles, shipped with the app — quality over coverage; (3) on-demand expansion: Open Library subject and author queries around high-scoring regions of taste-space, with fetched candidates receiving auto-seeded profiles marked <span class="tag">Unverified</span> until the reader confirms or adjusts them. The corpus grows along the reader's frontier rather than trying to swallow the whole genre.</p>
+
+  <h3>10.3 The multi-user seam</h3>
+  <p>Everything user-specific — ledger, ratings, profile, range position, standing rules — lives behind a single <code>userId</code> key from day one, even while that key is constant. The future edition swaps Dexie for hosted Postgres + auth (and gains cross-device sync as the same feature), while the recommender, feature space and seed corpus are shared infrastructure. Because every account already starts from zero and the first run (§7.9) assumes nothing about its reader, going multi-user requires no new onboarding design — new users simply get the same front door. Each reader gets their own librarian, as chartered in Chapter I.</p>
+
+  <h3>10.4 Upgrade path: embeddings</h3>
+  <p>When richer representation is wanted, a synopsis-embedding component (precomputed offline for the seed corpus, stored as static vectors) concatenates onto the feature vector of §5.1. The scoring pipeline is representation-agnostic, so this is an additive experiment — measured against the report card's MAE, adopted only if it demonstrably predicts the reader's verdicts better. The system's own honesty chart decides.</p>
+</section>
+
+<!-- ================= XI ================= -->
+<section class="chapter" id="risks">
+  <div class="chaphead"><div class="no">Chapter XI</div><h2>Risk register &amp; failure modes</h2></div>
+
+  <p class="lede">Everything foreseeable that could go wrong, with its mitigation. A librarian who has thought about fire keeps better books.</p>
+
+  <table>
+    <tr><th style="width:22%">Risk</th><th style="width:34%">Failure mode</th><th>Mitigation</th></tr>
+    <tr><td>Logging fatigue</td><td>Tracking lapses after three weeks; the model starves.</td><td>Fifteen-second logging, sixty-second review, backfill mode, no mandatory fields beyond the verdict.</td></tr>
+    <tr><td>Cold start</td><td>Early recommendations are poor; trust never forms.</td><td>The three-channel first run (§7.9), a visible Learning state with honest wide bands, and a progress line stating exactly what sharpens the model — the tool admits it is learning.</td></tr>
+    <tr><td>Filter bubble</td><td>The model converges on one subgenre and digs in.</td><td>The Discovery Range, MMR diversity, the wildcard slot, range-returns evidence, and the Not-for-you override.</td></tr>
+    <tr><td>Mood overfitting</td><td>One grim month reshapes the whole profile.</td><td>Gentle recency decay (τ = 24 months); drift shown explicitly on the radar; profile pinning available.</td></tr>
+    <tr><td>Metadata quality</td><td>Open Library tags are wrong or missing; profiles mislead.</td><td>Curated seed corpus; Unverified tags on auto-seeded profiles; every axis user-adjustable; reader perception is ground truth.</td></tr>
+    <tr><td>Data loss</td><td>Browser storage cleared; years of ledger gone.</td><td>Weekly auto-snapshot download, one-click export, import that round-trips perfectly. Tested, not assumed.</td></tr>
+    <tr><td>API mortality</td><td>Open Library changes or rate-limits.</td><td>Cache-at-write, Google Books fallback; the app degrades to manual entry, never to broken.</td></tr>
+    <tr><td>Cover licensing</td><td>Redistributing covers in a public edition raises rights questions.</td><td>V1 is personal use; the public edition hotlinks covers from source APIs per their terms rather than redistributing. Shelf-tone placeholders mean the design never depends on covers.</td></tr>
+    <tr><td>Self-gaming</td><td>Rating dishonestly to steer future picks.</td><td>“Pin this preference” standing rules offer the honest path to the same goal.</td></tr>
+    <tr><td>Scope creep</td><td>Social features, non-fiction, half-built everything.</td><td>Staged roadmap; each edition ships whole. The charter: one reader, brilliantly served, first.</td></tr>
+    <tr><td>Design drift</td><td>New features arrive off-system; the product accretes clutter.</td><td>Porcelain &amp; Ink tokens are the single styling source; the accent-budget and two-elevation rules are checked at review. V1.0's costume lesson stays recorded in §9.1.</td></tr>
+    <tr><td>Metric myopia</td><td>Optimising predicted stars over reading joy.</td><td>Felt-experience axes in the review; the Annual Report asks one unquantified question — “what do you want more of next year?” — and stores the answer where the reader will re-read it.</td></tr>
+  </table>
+</section>
+
+<!-- ================= XII ================= -->
+<section class="chapter" id="roadmap">
+  <div class="chaphead"><div class="no">Chapter XII</div><h2>Roadmap &amp; future editions</h2></div>
+
+  <table>
+    <tr><th style="width:24%">Edition</th><th>Contents</th></tr>
+    <tr><td>First build<br><span class="caption">weeks 1–3</span></td><td>The complete loop of Fig. 1: Library, logging via Open Library, Review flow, the full recommender with Discovery Range, Queue, JSON export, calibration. Ships in the approved design from day one — the feel is the product.</td></tr>
+    <tr><td>Second build<br><span class="caption">weeks 4–6</span></td><td>The Atlas (all eight charts), sensitivity regression, Reading sessions and pace, Not-for-you, PWA install.</td></tr>
+    <tr><td>Third build<br><span class="caption">months 2–3</span></td><td>Ask (natural-language moods), narrator intelligence, the Annual Report, Goodreads/StoryGraph import, range-returns analytics.</td></tr>
+    <tr><td>Public edition<br><span class="caption">when ready</span></td><td>Auth + hosted storage across the §10.3 seam, per-user librarians, cross-device sync, shareable read-only Annual Reports and taste radars. Gated on a full season of proven report-card performance for the single reader.</td></tr>
+    <tr><td>Speculative</td><td>Friend-blend recommendations (“a book for both of us”), book-club mode, non-SF wings, embedding-powered similarity, a monthly written “librarian's letter” synthesising the month in prose, a designed dark appearance derived from the shelf tones.</td></tr>
+  </table>
+</section>
+
+<!-- ================= XIII ================= -->
+<section class="chapter" id="appendix">
+  <div class="chaphead"><div class="no">Chapter XIII</div><h2>Appendix: calibration &amp; glossary</h2></div>
+
+  <h3>A. The calibration deck</h3>
+  <p>The deck exists so that any reader, starting from nothing, can give the model a defensible shape in a few minutes. Titles are chosen against three criteria: together they must <strong>span the twelve axes</strong> (so any taste polygon can be sketched), each must be <strong>widely read</strong> (so recognition — and therefore rating rather than skipping — is likely), and they must <strong>vary in length and register</strong> (so runtime and accessibility preferences surface too). An illustrative twenty: <em>Project Hail Mary</em>, <em>The Martian</em>, <em>We Are Legion (We Are Bob)</em>, <em>Children of Time</em>, <em>The Player of Games</em>, <em>A Fire Upon the Deep</em>, <em>Blindsight</em>, <em>The Long Way to a Small, Angry Planet</em>, <em>Recursion</em>, <em>Dark Matter</em>, <em>Old Man's War</em>, <em>The Left Hand of Darkness</em>, <em>Seveneves</em>, <em>To Sleep in a Sea of Stars</em>, <em>The First Fifteen Lives of Harry August</em>, <em>All Systems Red</em>, <em>Hyperion</em>, <em>The Three-Body Problem</em>, <em>Annihilation</em>, <em>Dune</em>. Rating even half of them, in any combination, gives the twelve-dimensional polygon enough structure for the model to make its first honest predictions — and skipped cards cost nothing.</p>
+
+  <h3>B. Glossary</h3>
+  <table>
+    <tr><th style="width:26%">Term</th><th>Meaning</th></tr>
+    <tr><td>Book profile</td><td>A book's numerical description: twelve tone axes + weighted theme tags (§4.2, §5.1).</td></tr>
+    <tr><td>Taste vector, <b>T</b></td><td>The signed, recency-weighted centroid of everything rated (§5.3).</td></tr>
+    <tr><td>Verdict</td><td>The overall half-star rating, 0.5–5.0.</td></tr>
+    <tr><td>Shrinkage</td><td>Pulling uncertain predictions toward the reader's mean; honesty for thin evidence (§5.4).</td></tr>
+    <tr><td>Discovery Range, δ</td><td>The reader-controlled weight on novelty in the final score (§5.5, Ch. VI).</td></tr>
+    <tr><td>MMR</td><td>Maximal marginal relevance: shortlist selection that rewards difference from books already picked (§5.5).</td></tr>
+    <tr><td>Wildcard</td><td>The reserved high-novelty slot at the Far and Unknown ranges.</td></tr>
+    <tr><td>Standing rule</td><td>A reader-written hard filter that outranks all scoring (§5.6).</td></tr>
+    <tr><td>Shelf tones</td><td>The four deep gradient pairs (Midnight, Forest, Sepia, Graphite) used for placeholders and categorical colour (§9.3).</td></tr>
+    <tr><td>MAE</td><td>Mean absolute error between predicted and actual verdicts — the librarian's public report card (§8).</td></tr>
+  </table>
+
+  <div class="pull-quote">The catalogue remembers so the reader can wander.</div>
+</section>
+
+<footer class="colophon">
+  <div>Marginalia · White paper v2.0 · Porcelain &amp; Ink</div>
+  <div>Set in Newsreader &amp; Instrument Sans · July 2026</div>
+</footer>
+
+</div>
+</body>
+</html>

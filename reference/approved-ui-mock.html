@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Marginalia — mock v2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400;1,6..72,500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F7F7F4;          /* porcelain */
+    --surface:#FFFFFF;
+    --ink:#17181C;
+    --ink-2:#5B5E66;       /* secondary text */
+    --ink-3:#9A9DA6;       /* tertiary / labels */
+    --line:#E7E7E2;        /* hairline */
+    --line-2:#EFEFEA;
+    --accent:#3546E8;      /* ultramarine */
+    --accent-soft:#EDEFFE;
+    --accent-ink:#2635B8;
+    --good:#1D7A5F;
+    --radius:14px;
+    --sans:'Instrument Sans',-apple-system,'Segoe UI',sans-serif;
+    --serif:'Newsreader',Georgia,serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    background:var(--bg); color:var(--ink);
+    font-family:var(--sans); font-size:15px; line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1120px; margin:0 auto; padding:0 28px 96px;}
+
+  /* ---------- top nav ---------- */
+  .nav{
+    display:flex; align-items:center; gap:34px;
+    padding:20px 0 18px; border-bottom:1px solid var(--line);
+    position:sticky; top:0; background:rgba(247,247,244,.88); backdrop-filter:blur(12px); z-index:10;
+  }
+  .brand{font-family:var(--serif); font-style:italic; font-weight:500; font-size:21px; letter-spacing:.01em;}
+  .nav a{
+    text-decoration:none; color:var(--ink-2); font-size:14px; font-weight:500;
+    padding:6px 2px; position:relative; transition:color .15s;
+  }
+  .nav a:hover{color:var(--ink)}
+  .nav a.on{color:var(--ink)}
+  .nav a.on::after{content:""; position:absolute; left:0; right:0; bottom:-19px; height:2px; background:var(--accent); border-radius:2px;}
+  .nav .spacer{flex:1}
+  .search{
+    display:flex; align-items:center; gap:8px; color:var(--ink-3); font-size:13.5px;
+    border:1px solid var(--line); background:var(--surface); border-radius:9px;
+    padding:7px 12px; min-width:190px; cursor:text;
+  }
+  .search kbd{
+    margin-left:auto; font-family:var(--sans); font-size:11px; color:var(--ink-3);
+    border:1px solid var(--line); border-radius:5px; padding:1px 5px; background:var(--bg);
+  }
+
+  /* ---------- section labels ---------- */
+  .eyebrow{
+    font-size:11.5px; font-weight:600; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--ink-3); margin-bottom:14px;
+  }
+  .eyebrow b{color:var(--accent); font-weight:600;}
+
+  /* ---------- hero: next up ---------- */
+  .hero{
+    margin-top:44px; background:var(--surface); border:1px solid var(--line);
+    border-radius:20px; padding:44px 48px;
+    display:grid; grid-template-columns:1fr 300px; gap:48px; align-items:center;
+    box-shadow:0 1px 2px rgba(23,24,28,.03), 0 24px 48px -32px rgba(23,24,28,.1);
+  }
+  @media(max-width:900px){ .hero{grid-template-columns:1fr; padding:32px 26px;} }
+  .hero h1{
+    font-family:var(--serif); font-weight:500; font-size:clamp(32px,4.6vw,46px);
+    line-height:1.06; letter-spacing:-.01em; margin:6px 0 8px;
+  }
+  .hero .author{font-size:15.5px; color:var(--ink-2); margin-bottom:18px;}
+  .pillrow{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:22px;}
+  .pill{
+    font-size:12.5px; font-weight:500; color:var(--ink-2);
+    border:1px solid var(--line); border-radius:999px; padding:4px 12px; background:var(--bg);
+  }
+  .why{
+    font-size:15px; color:var(--ink-2); line-height:1.7; max-width:52ch;
+    border-left:2px solid var(--line); padding-left:16px; margin-bottom:20px;
+  }
+  .why b{color:var(--ink); font-weight:600;}
+  .because{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:28px;}
+  .chip{
+    display:flex; align-items:baseline; gap:7px;
+    font-size:12.5px; color:var(--ink-2);
+    background:var(--bg); border:1px solid var(--line); border-radius:9px; padding:6px 11px;
+  }
+  .chip b{color:var(--ink); font-weight:600;}
+  .chip .sim{color:var(--ink-3); font-variant-numeric:tabular-nums;}
+  .btns{display:flex; gap:10px; flex-wrap:wrap;}
+  .btn{
+    font-family:var(--sans); font-size:14px; font-weight:600; cursor:pointer;
+    border-radius:10px; padding:11px 20px; transition:all .15s ease; border:1px solid transparent;
+  }
+  .btn-primary{background:var(--accent); color:#fff;}
+  .btn-primary:hover{background:var(--accent-ink); transform:translateY(-1px); box-shadow:0 8px 20px -10px rgba(53,70,232,.55);}
+  .btn-quiet{background:transparent; color:var(--ink-2); border-color:var(--line);}
+  .btn-quiet:hover{color:var(--ink); border-color:var(--ink-3);}
+
+  /* right: cover + prediction */
+  .heroside{display:flex; flex-direction:column; align-items:center; gap:26px;}
+  .cover{
+    width:172px; height:258px; border-radius:8px;
+    background:linear-gradient(155deg,#20263B 0%,#101322 100%);
+    color:#EDEFF8; display:flex; flex-direction:column; justify-content:flex-end;
+    padding:18px; box-shadow:0 24px 40px -20px rgba(23,24,28,.4), 0 2px 6px rgba(23,24,28,.15);
+    position:relative; overflow:hidden;
+  }
+  .cover::after{content:""; position:absolute; inset:0; background:linear-gradient(115deg, rgba(255,255,255,.14), transparent 38%);}
+  .cover .ct{font-family:var(--serif); font-size:17px; line-height:1.25; font-weight:500; position:relative;}
+  .cover .ca{font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; color:#9BA3C4; margin-top:8px; position:relative;}
+  .pred{display:flex; align-items:center; gap:16px;}
+  .ring{width:74px; height:74px;}
+  .ring svg{width:100%; height:100%; transform:rotate(-90deg);}
+  .ring .track{stroke:var(--line); fill:none; stroke-width:5;}
+  .ring .val{stroke:var(--accent); fill:none; stroke-width:5; stroke-linecap:round; stroke-dasharray:207; stroke-dashoffset:41; transition:stroke-dashoffset .6s ease;}
+  .ring .num{
+    font-family:var(--serif); font-size:21px; font-weight:500; fill:var(--ink);
+    transform:rotate(90deg); transform-origin:37px 37px;
+  }
+  .predtxt .l1{font-size:12px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-3); font-weight:600;}
+  .predtxt .l2{font-size:14px; color:var(--ink-2); margin-top:2px;}
+  .predtxt .l2 b{color:var(--ink); font-weight:600; font-variant-numeric:tabular-nums;}
+
+  /* ---------- drift + shortlist ---------- */
+  .duo{display:grid; grid-template-columns:380px 1fr; gap:24px; margin-top:24px; align-items:stretch;}
+  @media(max-width:900px){ .duo{grid-template-columns:1fr;} }
+  .panel{
+    background:var(--surface); border:1px solid var(--line); border-radius:20px; padding:30px 32px;
+  }
+  .panel h2{font-size:16px; font-weight:600; letter-spacing:-.01em; margin-bottom:4px;}
+  .panel .sub{font-size:13.5px; color:var(--ink-2); margin-bottom:26px;}
+
+  /* drift slider */
+  .drift-name{font-family:var(--serif); font-size:24px; font-weight:500; margin-bottom:2px; transition:opacity .2s;}
+  .drift-desc{font-size:13.5px; color:var(--ink-2); min-height:22px; margin-bottom:26px;}
+  .track{
+    position:relative; height:4px; background:var(--line); border-radius:4px; margin:14px 6px 12px; cursor:pointer;
+  }
+  .track .fill{position:absolute; left:0; top:0; bottom:0; background:var(--accent); border-radius:4px; transition:width .3s cubic-bezier(.3,1,.4,1);}
+  .stop{
+    position:absolute; top:50%; width:14px; height:14px; border-radius:50%;
+    background:var(--surface); border:2px solid var(--line); transform:translate(-50%,-50%);
+    cursor:pointer; transition:all .2s; z-index:2;
+  }
+  .stop:hover{border-color:var(--ink-3);}
+  .stop.done{background:var(--accent); border-color:var(--accent);}
+  .stop.cur{
+    width:22px; height:22px; background:var(--surface); border:2px solid var(--accent);
+    box-shadow:0 0 0 5px var(--accent-soft), 0 2px 8px rgba(53,70,232,.25);
+  }
+  .ticks{display:flex; justify-content:space-between; font-size:11px; color:var(--ink-3); font-weight:500; padding:0 0px; margin-top:14px;}
+  .ticks span{width:20%; text-align:center; cursor:pointer; transition:color .15s;}
+  .ticks span:first-child{text-align:left} .ticks span:last-child{text-align:right}
+  .ticks span.cur{color:var(--accent); font-weight:600;}
+  .drift-note{
+    margin-top:26px; padding-top:20px; border-top:1px solid var(--line-2);
+    font-size:13px; color:var(--ink-2); line-height:1.65;
+  }
+  .drift-note b{color:var(--ink); font-weight:600;}
+
+  /* shortlist */
+  .row{
+    display:grid; grid-template-columns:26px 1fr auto; gap:16px; align-items:center;
+    padding:15px 6px; border-bottom:1px solid var(--line-2);
+    opacity:0; transform:translateY(5px); animation:in .35s ease forwards;
+  }
+  .row:last-child{border-bottom:none;}
+  @keyframes in{to{opacity:1; transform:none;}}
+  .row .n{font-size:12.5px; color:var(--ink-3); font-variant-numeric:tabular-nums; font-weight:500;}
+  .row .t{font-family:var(--serif); font-size:17px; font-weight:500; line-height:1.3;}
+  .row .a{font-size:12.5px; color:var(--ink-2); margin-top:1px;}
+  .row .score{text-align:right;}
+  .row .sv{font-size:15px; font-weight:600; font-variant-numeric:tabular-nums;}
+  .row .sc{font-size:11.5px; color:var(--ink-3); font-variant-numeric:tabular-nums;}
+  .row.wild .t::after{
+    content:"Wildcard"; font-family:var(--sans); font-size:10.5px; font-weight:600;
+    letter-spacing:.06em; text-transform:uppercase; color:var(--accent);
+    background:var(--accent-soft); border-radius:6px; padding:2px 7px; margin-left:9px;
+    position:relative; top:-2px;
+  }
+  .row:hover{background:linear-gradient(90deg, transparent, var(--bg) 8%, var(--bg) 92%, transparent);}
+
+  /* ---------- library grid ---------- */
+  .section{margin-top:64px;}
+  .sechead{display:flex; align-items:baseline; justify-content:space-between; margin-bottom:22px;}
+  .sechead h2{font-family:var(--serif); font-weight:500; font-size:26px; letter-spacing:-.01em;}
+  .sechead a{font-size:13.5px; font-weight:600; color:var(--accent); text-decoration:none;}
+  .grid{display:grid; grid-template-columns:repeat(4,1fr); gap:20px;}
+  @media(max-width:900px){ .grid{grid-template-columns:repeat(2,1fr);} }
+  .book{
+    background:var(--surface); border:1px solid var(--line); border-radius:16px;
+    padding:18px; cursor:pointer; transition:all .2s ease; position:relative;
+  }
+  .book:hover{transform:translateY(-3px); box-shadow:0 20px 36px -24px rgba(23,24,28,.18); border-color:#DCDCD6;}
+  .bcover{
+    height:118px; border-radius:9px; margin-bottom:14px; position:relative; overflow:hidden;
+    display:flex; align-items:flex-end; padding:12px;
+  }
+  .bcover span{font-family:var(--serif); color:rgba(255,255,255,.95); font-size:13.5px; line-height:1.25; font-weight:500;}
+  .c1{background:linear-gradient(150deg,#33406B,#151B33);}
+  .c2{background:linear-gradient(150deg,#1E5C4F,#0C2B24);}
+  .c3{background:linear-gradient(150deg,#7A4A2B,#3C2113);}
+  .c4{background:linear-gradient(150deg,#5B5E66,#26272B);}
+  .book .bt{font-weight:600; font-size:14.5px; line-height:1.35;}
+  .book .ba{font-size:12.5px; color:var(--ink-2); margin-top:2px;}
+  .book .bm{display:flex; justify-content:space-between; align-items:center; margin-top:12px;}
+  .stars{font-size:13px; font-weight:600; font-variant-numeric:tabular-nums;}
+  .stars.dnf{color:var(--ink-3); font-weight:500;}
+  .book .fmt{font-size:11px; color:var(--ink-3); letter-spacing:.08em; text-transform:uppercase; font-weight:500;}
+  .axes{
+    position:absolute; inset:0; background:rgba(255,255,255,.97); border-radius:16px;
+    padding:20px; opacity:0; pointer-events:none; transition:opacity .18s ease;
+    display:flex; flex-direction:column; justify-content:center; gap:9px;
+  }
+  .book:hover .axes{opacity:1;}
+  .ax{display:flex; align-items:center; gap:10px; font-size:11.5px; color:var(--ink-2);}
+  .ax span{width:74px; text-align:right;}
+  .ax .bar{flex:1; height:4px; background:var(--line-2); border-radius:3px; overflow:hidden;}
+  .ax .bar i{display:block; height:100%; background:var(--accent); border-radius:3px;}
+
+  /* ---------- stats strip ---------- */
+  .stats{
+    display:grid; grid-template-columns:repeat(4,1fr); gap:0; margin-top:64px;
+    background:var(--surface); border:1px solid var(--line); border-radius:20px; overflow:hidden;
+  }
+  @media(max-width:900px){ .stats{grid-template-columns:repeat(2,1fr);} }
+  .stat{padding:28px 30px; border-right:1px solid var(--line-2);}
+  .stat:last-child{border-right:none;}
+  .stat .v{font-family:var(--serif); font-size:34px; font-weight:500; letter-spacing:-.01em; line-height:1;}
+  .stat .v small{font-size:16px; color:var(--ink-3);}
+  .stat .k{font-size:12px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-3); font-weight:600; margin-top:8px;}
+  .stat .d{font-size:12.5px; color:var(--ink-2); margin-top:3px;}
+  .up{color:var(--good); font-weight:600;}
+
+  .foot{margin-top:72px; padding-top:20px; border-top:1px solid var(--line); font-size:12.5px; color:var(--ink-3); display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px;}
+
+  @media (prefers-reduced-motion:reduce){ *{transition:none!important; animation:none!important;} }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- nav -->
+  <nav class="nav">
+    <div class="brand">Marginalia</div>
+    <a href="#">Library</a>
+    <a href="#" class="on">For you</a>
+    <a href="#">Reading</a>
+    <a href="#">Queue</a>
+    <a href="#">Atlas</a>
+    <div class="spacer"></div>
+    <div class="search">Search your library<kbd>/</kbd></div>
+  </nav>
+
+  <!-- hero -->
+  <section class="hero">
+    <div>
+      <div class="eyebrow">Next up · <b>chosen for you</b></div>
+      <h1>The Kaiju Preservation Society</h1>
+      <div class="author">John Scalzi · 2022</div>
+      <div class="pillrow">
+        <span class="pill">Standalone</span>
+        <span class="pill">Audio · 8h 20m</span>
+        <span class="pill">Narrated by Wil Wheaton</span>
+      </div>
+      <p class="why">Close to your taste centre — strongest on <b>pace</b> and <b>humour</b>, your two highest-sensitivity axes, with the problem-solving spine you consistently rate. Lighter on hard science than your average five-star; no military content.</p>
+      <div class="because">
+        <span class="chip"><b>Project Hail Mary</b><span class="sim">0.91</span></span>
+        <span class="chip"><b>We Are Legion</b><span class="sim">0.87</span></span>
+        <span class="chip"><b>The Martian</b><span class="sim">0.84</span></span>
+      </div>
+      <div class="btns">
+        <button class="btn btn-primary">Start reading</button>
+        <button class="btn btn-quiet">Add to queue</button>
+        <button class="btn btn-quiet">Not for me</button>
+      </div>
+    </div>
+    <div class="heroside">
+      <div class="cover">
+        <div class="ct">The Kaiju Preservation Society</div>
+        <div class="ca">John Scalzi</div>
+      </div>
+      <div class="pred">
+        <div class="ring">
+          <svg viewBox="0 0 74 74">
+            <circle class="track" cx="37" cy="37" r="33"/>
+            <circle class="val" cx="37" cy="37" r="33"/>
+            <text class="num" x="37" y="44" text-anchor="middle">4.5</text>
+          </svg>
+        </div>
+        <div class="predtxt">
+          <div class="l1">Predicted rating</div>
+          <div class="l2"><b>4.5</b> ± 0.3 · high confidence</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- drift + shortlist -->
+  <div class="duo">
+    <div class="panel">
+      <h2>Discovery range</h2>
+      <div class="sub">How far from your usual should we go?</div>
+      <div class="drift-name" id="dName">Familiar ground</div>
+      <div class="drift-desc" id="dDesc">Gentle variation on what you love · δ 0.12</div>
+      <div class="track" id="track">
+        <div class="fill" id="fill"></div>
+        <div class="stop" data-i="0" style="left:0%"></div>
+        <div class="stop cur" data-i="1" style="left:25%"></div>
+        <div class="stop" data-i="2" style="left:50%"></div>
+        <div class="stop" data-i="3" style="left:75%"></div>
+        <div class="stop" data-i="4" style="left:100%"></div>
+      </div>
+      <div class="ticks" id="ticks">
+        <span data-i="0">Comfort</span><span data-i="1" class="cur">Familiar</span><span data-i="2">Adjacent</span><span data-i="3">Far</span><span data-i="4">Unknown</span>
+      </div>
+      <div class="drift-note" id="dNote">Your hit rate at this range: <b>4.3 avg</b> across 61 books. The list on the right re-ranks as you move.</div>
+    </div>
+
+    <div class="panel">
+      <h2>The shortlist</h2>
+      <div class="sub">Five picks, ranked — each different from the last.</div>
+      <div id="slist"></div>
+    </div>
+  </div>
+
+  <!-- recently finished -->
+  <section class="section">
+    <div class="sechead">
+      <h2>Recently finished</h2>
+      <a href="#">View library →</a>
+    </div>
+    <div class="grid">
+      <div class="book">
+        <div class="bcover c1"><span>Project Hail Mary</span></div>
+        <div class="bt">Project Hail Mary</div>
+        <div class="ba">Andy Weir</div>
+        <div class="bm"><span class="stars">★ 5.0</span><span class="fmt">Audio</span></div>
+        <div class="axes">
+          <div class="ax"><span>Pace</span><div class="bar"><i style="width:92%"></i></div></div>
+          <div class="ax"><span>Problem-solving</span><div class="bar"><i style="width:96%"></i></div></div>
+          <div class="ax"><span>Humour</span><div class="bar"><i style="width:80%"></i></div></div>
+          <div class="ax"><span>Darkness</span><div class="bar"><i style="width:18%"></i></div></div>
+          <div class="ax"><span>Military</span><div class="bar"><i style="width:4%"></i></div></div>
+        </div>
+      </div>
+      <div class="book">
+        <div class="bcover c2"><span>Children of Time</span></div>
+        <div class="bt">Children of Time</div>
+        <div class="ba">Adrian Tchaikovsky</div>
+        <div class="bm"><span class="stars">★ 4.5</span><span class="fmt">Audio</span></div>
+        <div class="axes">
+          <div class="ax"><span>Scope</span><div class="bar"><i style="width:94%"></i></div></div>
+          <div class="ax"><span>Hardness</span><div class="bar"><i style="width:72%"></i></div></div>
+          <div class="ax"><span>Pace</span><div class="bar"><i style="width:58%"></i></div></div>
+          <div class="ax"><span>Structure</span><div class="bar"><i style="width:64%"></i></div></div>
+          <div class="ax"><span>Darkness</span><div class="bar"><i style="width:44%"></i></div></div>
+        </div>
+      </div>
+      <div class="book">
+        <div class="bcover c3"><span>All These Worlds</span></div>
+        <div class="bt">All These Worlds</div>
+        <div class="ba">Dennis E. Taylor · Bobiverse #3</div>
+        <div class="bm"><span class="stars">★ 4.5</span><span class="fmt">Audio</span></div>
+        <div class="axes">
+          <div class="ax"><span>Humour</span><div class="bar"><i style="width:84%"></i></div></div>
+          <div class="ax"><span>Pace</span><div class="bar"><i style="width:88%"></i></div></div>
+          <div class="ax"><span>Problem-solving</span><div class="bar"><i style="width:82%"></i></div></div>
+          <div class="ax"><span>Military</span><div class="bar"><i style="width:30%"></i></div></div>
+          <div class="ax"><span>Prose</span><div class="bar"><i style="width:26%"></i></div></div>
+        </div>
+      </div>
+      <div class="book">
+        <div class="bcover c4"><span>A Memory Called Empire</span></div>
+        <div class="bt">A Memory Called Empire</div>
+        <div class="ba">Arkady Martine</div>
+        <div class="bm"><span class="stars dnf">Stopped at 31%</span><span class="fmt">Audio</span></div>
+        <div class="axes">
+          <div class="ax"><span>Reason</span><div class="bar"><i style="width:0%"></i></div></div>
+          <div class="ax" style="font-size:12px; color:var(--ink)">Pacing — noted without penalty to similar themes you might still enjoy.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- stats -->
+  <div class="stats">
+    <div class="stat"><div class="v">142</div><div class="k">Books logged</div><div class="d"><span class="up">+4</span> this month</div></div>
+    <div class="stat"><div class="v">611<small> h</small></div><div class="k">Hours listened</div><div class="d">≈ 11.2 h / week</div></div>
+    <div class="stat"><div class="v">4.1</div><div class="k">Average rating</div><div class="d">trending <span class="up">up</span> since March</div></div>
+    <div class="stat"><div class="v">±0.34</div><div class="k">Prediction error</div><div class="d">the model's report card</div></div>
+  </div>
+
+  <div class="foot">
+    <span>Marginalia — mock v2</span>
+    <span>Hover a book for its profile · drag the discovery range</span>
+  </div>
+</div>
+
+<script>
+  const stops=[
+    {name:"Comfort shelf", desc:"Only the surest bets · δ 0.00", note:'Your hit rate at this range: <b>4.5 avg</b> across 38 books.'},
+    {name:"Familiar ground", desc:"Gentle variation on what you love · δ 0.12", note:'Your hit rate at this range: <b>4.3 avg</b> across 61 books. The list on the right re-ranks as you move.'},
+    {name:"Adjacent shelves", desc:"Neighbouring subgenres open up · δ 0.25", note:'Your hit rate at this range: <b>4.0 avg</b> across 27 books.'},
+    {name:"Far shelves", desc:"One wildcard guaranteed in five · δ 0.42", note:'Your hit rate at this range: <b>3.9 avg</b> — but two of your top-ten books came from here.'},
+    {name:"Terra incognita", desc:"Your filters apply. Your taste doesn't · δ 0.60", note:'Only 6 books tried at this range so far. <b>Small sample — that\'s the point.</b>'},
+  ];
+  const lists=[
+    [["The Kaiju Preservation Society","John Scalzi · 8h 20m","4.5","± 0.3"],["Heaven's River","Dennis E. Taylor · Bobiverse #4","4.6","± 0.2"],["Dungeon Crawler Carl","Matt Dinniman · 13h 49m","4.4","± 0.3"],["The Long Way to a Small, Angry Planet","Becky Chambers · 14h 23m","4.2","± 0.4"],["Artemis","Andy Weir · 8h 57m","4.1","± 0.3"]],
+    [["The Kaiju Preservation Society","John Scalzi · 8h 20m","4.5","± 0.3"],["Dungeon Crawler Carl","Matt Dinniman · 13h 49m","4.4","± 0.3"],["The Player of Games","Iain M. Banks · 11h 26m","4.3","± 0.4"],["Recursion","Blake Crouch · 10h 47m","4.2","± 0.4"],["To Sleep in a Sea of Stars","C. Paolini · 32h 29m","4.0","± 0.5"]],
+    [["The Player of Games","Iain M. Banks · 11h 26m","4.3","± 0.4"],["Recursion","Blake Crouch · 10h 47m","4.2","± 0.4"],["All Systems Red","Martha Wells · 3h 17m","4.2","± 0.4"],["A Fire Upon the Deep","Vernor Vinge · 21h 37m","4.1","± 0.5"],["Sea of Tranquility","Emily St. John Mandel · 5h 47m","3.9","± 0.6"]],
+    [["A Fire Upon the Deep","Vernor Vinge · 21h 37m","4.1","± 0.5"],["The First Fifteen Lives of Harry August","Claire North · 12h 11m","3.9","± 0.6"],["Blindsight","Peter Watts · 11h 18m","3.8","± 0.7"],["Semiosis","Sue Burke · 12h 47m","3.7","± 0.8"],["This Is How You Lose the Time War","El-Mohtar & Gladstone · 4h 16m","—","wild",true]],
+    [["Blindsight","Peter Watts · 11h 18m","3.8","± 0.7"],["The Left Hand of Darkness","Ursula K. Le Guin · 9h 27m","3.6","± 0.9"],["Piranesi","Susanna Clarke · 6h 58m","3.5","± 0.9"],["Roadside Picnic","A. & B. Strugatsky · 7h 09m","3.4","± 1.0"],["Annihilation","Jeff VanderMeer · 6h 00m","—","wild",true]],
+  ];
+  let idx=1;
+  const fill=document.getElementById('fill'), dName=document.getElementById('dName'),
+        dDesc=document.getElementById('dDesc'), dNote=document.getElementById('dNote'),
+        slist=document.getElementById('slist'), track=document.getElementById('track');
+
+  function render(){
+    fill.style.width=(idx*25)+'%';
+    document.querySelectorAll('.stop').forEach(s=>{
+      const i=+s.dataset.i;
+      s.classList.toggle('cur', i===idx);
+      s.classList.toggle('done', i<idx);
+    });
+    document.querySelectorAll('.ticks span').forEach(s=>s.classList.toggle('cur', +s.dataset.i===idx));
+    dName.textContent=stops[idx].name;
+    dDesc.textContent=stops[idx].desc;
+    dNote.innerHTML=stops[idx].note;
+    slist.innerHTML=lists[idx].map((r,i)=>{
+      const wild=r[4];
+      return `<div class="row${wild?' wild':''}" style="animation-delay:${i*45}ms">
+        <div class="n">0${i+1}</div>
+        <div><div class="t">${r[0]}</div><div class="a">${r[1]}</div></div>
+        <div class="score"><div class="sv">${r[2]}</div><div class="sc">${wild?'unscored':r[3]}</div></div>
+      </div>`;
+    }).join('');
+  }
+  function setIdx(i){ idx=Math.max(0,Math.min(4,i)); render(); }
+  document.querySelectorAll('.stop,.ticks span').forEach(el=>el.addEventListener('click',e=>{e.stopPropagation(); setIdx(+el.dataset.i);}));
+  track.addEventListener('click',e=>{
+    const r=track.getBoundingClientRect();
+    setIdx(Math.round((e.clientX-r.left)/r.width*4));
+  });
+  render();
+</script>
+</body>
+</html>
