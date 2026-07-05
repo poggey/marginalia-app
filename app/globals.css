@@ -1,0 +1,102 @@
+@import "tailwindcss";
+
+/* Porcelain & Ink — tokens per docs/02-DESIGN-TOKENS.md. The only styling source. */
+@theme {
+  --color-porcelain: #F7F7F4;
+  --color-surface: #FFFFFF;
+  --color-ink: #17181C;
+  --color-ink-2: #5B5E66;
+  --color-ink-3: #9A9DA6;
+  --color-hairline: #E7E7E2;
+  --color-hairline-2: #EFEFEA;
+  --color-accent: #3546E8;
+  --color-accent-ink: #2635B8;
+  --color-accent-soft: #EDEFFE;
+  --color-positive: #1D7A5F;
+  --color-midnight-hi: #33406B;
+  --color-midnight-base: #151B33;
+  --color-forest-hi: #1E5C4F;
+  --color-forest-base: #0C2B24;
+  --color-sepia-hi: #7A4A2B;
+  --color-sepia-base: #3C2113;
+  --color-graphite-hi: #5B5E66;
+  --color-graphite-base: #26272B;
+  --color-tone-text: #EDEFF8;
+
+  --font-sans: var(--font-instrument-sans), system-ui, sans-serif;
+  --font-serif: var(--font-newsreader), Georgia, serif;
+
+  --radius-panel: 20px;
+  --radius-card: 16px;
+  --radius-btn: 10px;
+  --radius-input: 9px;
+  --radius-cover: 8px;
+
+  --shadow-raised: 0 1px 2px rgba(23, 24, 28, 0.03), 0 24px 48px -32px rgba(23, 24, 28, 0.1);
+  --shadow-cover: 0 24px 40px -20px rgba(23, 24, 28, 0.4), 0 2px 6px rgba(23, 24, 28, 0.15);
+}
+
+body {
+  background: var(--color-porcelain);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Uppercase label style — 11–12px, .12em tracking, 600, ink-3 */
+.label-caps {
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-ink-3);
+}
+
+/* Tabular numerals wherever data appears */
+.tnum {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Focus: 2px accent ring, 2px offset */
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Shortlist re-rank: fade + 5px translate-in, 45ms stagger applied inline */
+@keyframes row-in {
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.row-in {
+  opacity: 0;
+  transform: translateY(5px);
+  animation: row-in 0.35s ease forwards;
+}
+
+/* Discovery fill soft spring */
+.drift-fill {
+  transition: width 0.3s cubic-bezier(0.3, 1, 0.4, 1);
+}
+
+/* Full reduced-motion fallback: everything becomes an instant state / crossfade */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .row-in {
+    opacity: 1;
+    transform: none;
+    animation: none;
+  }
+}
