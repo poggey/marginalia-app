@@ -174,7 +174,13 @@ export default function BookPage({ params }: { params: Promise<{ bookId: string 
           </div>
         </div>
       )}
-      <div className="mt-11 grid grid-cols-1 gap-12 md:grid-cols-[220px_1fr]">
+      <button
+        onClick={() => router.back()}
+        className="mt-8 flex items-center gap-1.5 text-[13.5px] font-medium text-ink-2 transition-colors hover:text-ink"
+      >
+        <span aria-hidden>←</span> Back
+      </button>
+      <div className="mt-6 grid grid-cols-1 gap-12 md:grid-cols-[220px_1fr]">
       <div>
         <BookCover book={book} className="h-[330px] w-[220px] shadow-cover" titleSize={17} />
         <div className="mt-6 flex flex-col gap-2.5">

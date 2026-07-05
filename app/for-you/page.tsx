@@ -29,24 +29,30 @@ export default function ForYou() {
 
   // When the local pool runs thin, widen the shelf from Open Library —
   // throttled so it re-runs only when the ledger has actually changed.
+  // Versioned key: bumping it makes every ledger rebuild its fetched stock
+  // once under the current sourcing rules (v2 = genre-anchored queries).
+  const POOL_EXPANSION_KEY = 'poolExpansionV2';
   const THIN_POOL = 25;
   const EXPANSION_STALE_MS = 7 * 24 * 60 * 60 * 1000;
   useEffect(() => {
     if (!output || output.coldStart || expandingRef.current) return;
-    if (output.pool.length >= THIN_POOL) return;
     (async () => {
-      const last = await getMeta<{ at: string; ratedCount: number }>('poolExpansion');
-      if (
-        last &&
-        last.ratedCount === output.ratedCount &&
-        Date.now() - new Date(last.at).getTime() < EXPANSION_STALE_MS
-      )
-        return;
+      const last = await getMeta<{ at: string; ratedCount: number }>(POOL_EXPANSION_KEY);
+      // No v2 record yet → rebuild unconditionally, even if the pool looks
+      // stocked: pre-v2 stock may be off-genre and needs pruning.
+      if (last) {
+        if (output.pool.length >= THIN_POOL) return;
+        if (
+          last.ratedCount === output.ratedCount &&
+          Date.now() - new Date(last.at).getTime() < EXPANSION_STALE_MS
+        )
+          return;
+      }
       expandingRef.current = true;
       setWideningShelf(true);
       try {
         await expandCandidatePool();
-        await setMeta('poolExpansion', {
+        await setMeta(POOL_EXPANSION_KEY, {
           at: new Date().toISOString(),
           ratedCount: output.ratedCount,
         });

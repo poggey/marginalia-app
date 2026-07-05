@@ -8,6 +8,7 @@ interface OLDoc {
   isbn?: string[];
   number_of_pages_median?: number;
   subject?: string[];
+  readinglog_count?: number;
 }
 
 export async function searchOpenLibrary(
@@ -17,7 +18,7 @@ export async function searchOpenLibrary(
   const url =
     `https://openlibrary.org/search.json?limit=${opts.limit ?? 10}` +
     (opts.sort ? `&sort=${opts.sort}` : '') +
-    '&fields=title,author_name,first_publish_year,cover_i,isbn,number_of_pages_median,subject&q=' +
+    '&fields=title,author_name,first_publish_year,cover_i,isbn,number_of_pages_median,subject,readinglog_count&q=' +
     encodeURIComponent(query);
   const res = await fetch(url);
   if (!res.ok) throw new Error(`Open Library ${res.status}`);
@@ -32,6 +33,7 @@ export async function searchOpenLibrary(
       pages: d.number_of_pages_median,
       coverUrl: d.cover_i ? `https://covers.openlibrary.org/b/id/${d.cover_i}-M.jpg` : undefined,
       subjects: (d.subject ?? []).slice(0, 20),
+      readinglog: d.readinglog_count,
       source: 'openlibrary' as const,
     }));
 }
