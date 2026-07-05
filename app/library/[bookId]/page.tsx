@@ -198,20 +198,22 @@ export default function BookPage({ params }: { params: Promise<{ bookId: string 
               AXES.map((a) => (
                 <label key={a} className="grid grid-cols-[120px_1fr_44px] items-center gap-4 text-[12.5px] text-ink-2">
                   <span className="text-right">{AXIS_LABELS[a]}</span>
+                  {/* Displayed 0–10 to match the Review sliders; stored 0..1 per the schema. */}
                   <input
                     type="range"
                     min={0}
-                    max={1}
-                    step={0.05}
-                    value={axes[a]}
+                    max={10}
+                    step={0.5}
+                    value={axes[a] * 10}
                     onChange={(e) => {
-                      setAxes({ ...axes, [a]: Number(e.target.value) });
+                      setAxes({ ...axes, [a]: Number(e.target.value) / 10 });
                       setDirty(true);
                     }}
                     className="accent-[#3546E8]"
                     aria-label={AXIS_LABELS[a]}
+                    aria-valuetext={`${(axes[a] * 10).toFixed(1)} out of 10`}
                   />
-                  <span className="tnum text-ink-3">{axes[a].toFixed(2)}</span>
+                  <span className="tnum text-ink-3">{(axes[a] * 10).toFixed(1)}</span>
                 </label>
               ))}
           </div>

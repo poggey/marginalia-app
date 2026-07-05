@@ -14,6 +14,11 @@ function fmt(n: number): string {
   return n.toFixed(2);
 }
 
+/** Axis values face the reader on the same 0–10 scale as the Review sliders. */
+function fmtAxis(n: number): string {
+  return (n * 10).toFixed(1);
+}
+
 export interface ReasoningInput {
   book: Book;
   prediction: Prediction | null;
@@ -61,7 +66,7 @@ export function buildReasoning(input: ReasoningInput): string[] {
     const [t1, t2] = scored;
     const qualifier = sensitivities ? ', your highest-sensitivity axes' : ' — axes your favourites run high on';
     sentences.push(
-      `Strongest on ${axisName(t1.axis)} (${fmt(book.axes[t1.axis])}) and ${axisName(t2.axis)} (${fmt(
+      `Strongest on ${axisName(t1.axis)} (${fmtAxis(book.axes[t1.axis])}) and ${axisName(t2.axis)} (${fmtAxis(
         book.axes[t2.axis],
       )})${qualifier}.`,
     );
@@ -72,9 +77,9 @@ export function buildReasoning(input: ReasoningInput): string[] {
     if (Math.abs(divergence.gap) >= 0.2 && !wildcard) {
       const dir = divergence.gap > 0 ? 'further into' : 'lighter on';
       sentences.push(
-        `It runs ${dir} ${axisName(divergence.axis)} than your usual — ${fmt(
+        `It runs ${dir} ${axisName(divergence.axis)} than your usual — ${fmtAxis(
           book.axes[divergence.axis],
-        )} against your centre of ${fmt(tasteAxes[divergence.axis])}.`,
+        )} against your centre of ${fmtAxis(tasteAxes[divergence.axis])}.`,
       );
     }
   }
