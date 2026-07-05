@@ -1,10 +1,10 @@
 'use client';
 
-import { Suspense, use, useState } from 'react';
+import { Suspense, use, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '@/lib/db';
-import { DNF_LABELS, USER_ID, type DnfReason } from '@/lib/types';
+import { AXES, AXIS_LABELS, DNF_LABELS, USER_ID, type Axis, type DnfReason } from '@/lib/types';
 import StarPicker from '@/components/StarPicker';
 import BookCover from '@/components/BookCover';
 
@@ -37,7 +37,8 @@ function Review({ params }: { params: Promise<{ recordId: string }> }) {
   const data = useLiveQuery(async () => {
     const record = await db.records.get(recordId);
     const book = record ? await db.books.get(record.bookId) : undefined;
-    return { record, book };
+    const existing = await db.ratings.where('readingRecordId').equals(recordId).first();
+    return { record, book, existing };
   }, [recordId]);
 
   const [axes, setAxes] = useState({ ideas: 5, pace: 5, characters: 5, prose: 5, ending: 5 });
@@ -45,40 +46,70 @@ function Review({ params }: { params: Promise<{ recordId: string }> }) {
   const [wouldReread, setWouldReread] = useState(false);
   const [moods, setMoods] = useState<string[]>([]);
   const [note, setNote] = useState('');
+  const [toneOpen, setToneOpen] = useState(false);
+  const [toneAxes, setToneAxes] = useState<Record<Axis, number> | null>(null);
+  const [toneTouched, setToneTouched] = useState(false);
   const [reason, setReason] = useState<DnfReason | null>(null);
   const [progress, setProgress] = useState<number>(50);
   const [saving, setSaving] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
+  const [prefilled, setPrefilled] = useState(false);
+
+  // Editing an existing review prefills every field, once.
+  useEffect(() => {
+    if (prefilled || !data) return;
+    if (data.existing) {
+      setAxes(data.existing.axes);
+      setVerdict(data.existing.verdict);
+      setWouldReread(data.existing.wouldReread);
+      setMoods(data.existing.moods);
+      setNote(data.existing.note ?? '');
+    }
+    if (data.book) setToneAxes({ ...data.book.axes });
+    if (data.record || data.existing) setPrefilled(true);
+  }, [data, prefilled]);
 
   if (!data) return null;
-  const { record, book } = data;
+  const { record, book, existing } = data;
   if (!record || !book) {
     return <div className="pt-16 text-[14px] text-ink-3">That reading record no longer exists.</div>;
   }
+  const editing = !!existing;
 
   async function confirmRating() {
     if (verdict === null || saving) return;
     setSaving(true);
     const now = new Date().toISOString();
-    await db.transaction('rw', [db.records, db.ratings], async () => {
+    await db.transaction('rw', [db.records, db.ratings, db.books], async () => {
       await db.records.update(recordId, {
         status: 'finished',
         finishedAt: record!.finishedAt ?? now,
       });
-      await db.ratings.add({
-        id: crypto.randomUUID(),
-        userId: USER_ID,
-        readingRecordId: recordId,
-        axes,
-        verdict,
-        wouldReread,
-        moods,
-        note: note.trim() || undefined,
-        ratedAt: now,
-      });
+      if (existing) {
+        // Editing the same encounter: ratedAt stays put so recency is honest.
+        await db.ratings.update(existing.id, {
+          axes, verdict, wouldReread, moods, note: note.trim() || undefined,
+        });
+      } else {
+        await db.ratings.add({
+          id: crypto.randomUUID(),
+          userId: USER_ID,
+          readingRecordId: recordId,
+          axes,
+          verdict,
+          wouldReread,
+          moods,
+          note: note.trim() || undefined,
+          ratedAt: now,
+        });
+      }
+      if (toneTouched && toneAxes) {
+        // The reader's perception is ground truth (§IV).
+        await db.books.update(book!.id, { axes: toneAxes, profileVerified: true });
+      }
     });
     setConfirmed(true);
-    setTimeout(() => router.push('/for-you'), 700); // the one clean transition
+    setTimeout(() => router.push(editing ? `/library/${book!.id}` : '/for-you'), 700);
   }
 
   async function confirmDnf() {
@@ -99,7 +130,11 @@ function Review({ params }: { params: Promise<{ recordId: string }> }) {
       <div className="flex flex-col items-center pt-[24vh] text-center">
         <div className="font-serif text-[30px] font-medium">Noted.</div>
         <div className="mt-2 text-[14px] text-ink-2">
-          {dnfMode ? 'Stopping is data, not defeat.' : 'The model just got a little sharper.'}
+          {dnfMode
+            ? 'Stopping is data, not defeat.'
+            : editing
+              ? 'Your review is updated.'
+              : 'The model just got a little sharper.'}
         </div>
       </div>
     );
@@ -110,9 +145,16 @@ function Review({ params }: { params: Promise<{ recordId: string }> }) {
       <div className="flex items-center gap-6">
         <BookCover book={book} className="h-[120px] w-[80px] shrink-0" titleSize={11} />
         <div>
-          <div className="label-caps mb-1.5">{dnfMode ? 'Stopping' : 'The sixty-second review'}</div>
+          <div className="label-caps mb-1.5">
+            {dnfMode ? 'Stopping' : editing ? 'Editing your review' : 'The sixty-second review'}
+          </div>
           <h1 className="font-serif text-[28px] font-medium leading-[1.15]">{book.title}</h1>
           <div className="text-[14px] text-ink-2">{book.author}</div>
+          {editing && !dnfMode && (
+            <div className="mt-1 text-[13px] text-ink-3">
+              You rated this ★ {existing!.verdict.toFixed(1)} — changes replace that review.
+            </div>
+          )}
         </div>
       </div>
 
@@ -161,6 +203,7 @@ function Review({ params }: { params: Promise<{ recordId: string }> }) {
         </section>
       ) : (
         <section className="mt-9 rounded-panel border border-hairline bg-surface p-8">
+          <div className="label-caps mb-4">How it landed for you</div>
           <div className="flex flex-col gap-4">
             {RATING_AXES.map(({ key, label }) => (
               <label key={key} className="grid grid-cols-[96px_1fr_36px] items-center gap-4 text-[13px] text-ink-2">
@@ -233,12 +276,52 @@ function Review({ params }: { params: Promise<{ recordId: string }> }) {
             className="mt-6 w-full rounded-input border border-hairline bg-porcelain px-4 py-2.5 text-[14px] outline-none placeholder:text-ink-3 focus:border-ink-3"
           />
 
+          <div className="mt-8 border-t border-hairline-2 pt-6">
+            <button
+              onClick={() => setToneOpen(!toneOpen)}
+              aria-expanded={toneOpen}
+              className="flex w-full items-baseline justify-between text-left"
+            >
+              <span className="label-caps">Tone profile — optional</span>
+              <span className="text-[12.5px] font-semibold text-accent">
+                {toneOpen ? 'Hide' : 'Describe the book'}
+              </span>
+            </button>
+            <p className="mt-1.5 text-[13px] text-ink-2">
+              Not part of your rating — these twelve axes describe the book itself, and sharpen
+              recommendations. Skip freely; you can adjust them any time from the book page.
+            </p>
+            {toneOpen && toneAxes && (
+              <div className="mt-5 flex flex-col gap-3">
+                {AXES.map((a) => (
+                  <label key={a} className="grid grid-cols-[110px_1fr_36px] items-center gap-4 text-[12.5px] text-ink-2">
+                    <span className="text-right">{AXIS_LABELS[a]}</span>
+                    <input
+                      type="range"
+                      min={0}
+                      max={10}
+                      step={0.5}
+                      value={toneAxes[a] * 10}
+                      onChange={(e) => {
+                        setToneAxes({ ...toneAxes, [a]: Number(e.target.value) / 10 });
+                        setToneTouched(true);
+                      }}
+                      className="accent-[#3546E8]"
+                      aria-label={AXIS_LABELS[a]}
+                    />
+                    <span className="tnum text-ink-3">{(toneAxes[a] * 10).toFixed(1)}</span>
+                  </label>
+                ))}
+              </div>
+            )}
+          </div>
+
           <button
             onClick={confirmRating}
             disabled={verdict === null || saving}
             className="mt-6 rounded-btn bg-accent px-6 py-2.5 text-[14px] font-semibold text-white transition-colors hover:bg-accent-ink disabled:cursor-not-allowed disabled:opacity-40"
           >
-            Confirm
+            {editing ? 'Save changes' : 'Confirm'}
           </button>
         </section>
       )}

@@ -41,7 +41,7 @@ export default function QueuePage() {
       <div className="mt-11 flex flex-wrap items-baseline justify-between gap-4">
         <h1 className="font-serif text-[34px] font-medium tracking-[-0.01em]">Queue</h1>
         <span className="tnum text-[13px] text-ink-3">
-          {rows.length} waiting · ordered by live model score · target 10–25
+          your want-to-read shortlist · {rows.length} waiting · ordered by live model score · target 10–25
         </span>
       </div>
 

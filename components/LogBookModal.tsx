@@ -5,10 +5,37 @@ import { useRouter } from 'next/navigation';
 import { db } from '@/lib/db';
 import { searchBooks, cacheBookFromResult } from '@/lib/metadata/cache';
 import type { BookSearchResult } from '@/lib/metadata/types';
-import { USER_ID, type ReadingRecord, type ReadingStatus } from '@/lib/types';
+import { USER_ID, type Book, type Rating, type ReadingRecord, type ReadingStatus } from '@/lib/types';
 import { toneGradient } from '@/lib/shelfTone';
 
 type Format = 'audio' | 'print' | 'ebook';
+
+interface ExistingState {
+  book: Book;
+  record?: ReadingRecord;
+  rating?: Rating;
+}
+
+// A picked search result may already be in the library — look it up so the
+// modal never offers "Start reading" for something you've rated.
+async function findExisting(result: BookSearchResult): Promise<ExistingState | null> {
+  const book = await db.books
+    .where('title')
+    .equalsIgnoreCase(result.title)
+    .filter((b) => b.author.toLowerCase() === result.author.toLowerCase())
+    .first();
+  if (!book) return null;
+  const records = await db.records.where('bookId').equals(book.id).toArray();
+  const record = records.sort((a, b) =>
+    (a.startedAt ?? a.finishedAt ?? a.queuedAt ?? '').localeCompare(
+      b.startedAt ?? b.finishedAt ?? b.queuedAt ?? '',
+    ),
+  )[records.length - 1];
+  const rating = record
+    ? await db.ratings.where('readingRecordId').equals(record.id).first()
+    : undefined;
+  return { book, record, rating };
+}
 
 // Sub-15-second logging: search → pick → one status tap. Cache-at-write.
 export default function LogBookModal({
@@ -26,8 +53,20 @@ export default function LogBookModal({
   const [results, setResults] = useState<BookSearchResult[]>([]);
   const [searching, setSearching] = useState(false);
   const [picked, setPicked] = useState<BookSearchResult | null>(initialPicked);
+  const [existing, setExisting] = useState<ExistingState | null>(null);
+  const [checked, setChecked] = useState(false);
   const [format, setFormat] = useState<Format>('audio');
   const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    setChecked(false);
+    setExisting(null);
+    if (!picked) return;
+    findExisting(picked).then((e) => {
+      setExisting(e?.record ? e : null);
+      setChecked(true);
+    });
+  }, [picked]);
 
   useEffect(() => {
     inputRef.current?.focus();
@@ -155,45 +194,116 @@ export default function LogBookModal({
                 Different book?
               </button>
             </div>
-            <div className="label-caps mb-2">Format</div>
-            <div className="mb-5 flex gap-2">
-              {(['audio', 'print', 'ebook'] as Format[]).map((f) => (
-                <button
-                  key={f}
-                  onClick={() => setFormat(f)}
-                  className={`rounded-full border px-3.5 py-1.5 text-[12.5px] font-medium capitalize transition-colors ${
-                    format === f
-                      ? 'border-accent bg-accent-soft text-accent-ink'
-                      : 'border-hairline bg-porcelain text-ink-2 hover:border-ink-3'
-                  }`}
-                >
-                  {f}
-                </button>
-              ))}
-            </div>
-            <div className="flex flex-wrap gap-2.5">
-              <button
-                onClick={() => save('reading')}
-                disabled={saving}
-                className="rounded-btn bg-accent px-5 py-2.5 text-[14px] font-semibold text-white transition-colors hover:bg-accent-ink"
-              >
-                Start reading
-              </button>
-              <button
-                onClick={() => save('queued')}
-                disabled={saving}
-                className="rounded-btn border border-hairline px-5 py-2.5 text-[14px] font-semibold text-ink-2 transition-colors hover:border-ink-3 hover:text-ink"
-              >
-                Add to queue
-              </button>
-              <button
-                onClick={() => save('finished')}
-                disabled={saving}
-                className="rounded-btn border border-hairline px-5 py-2.5 text-[14px] font-semibold text-ink-2 transition-colors hover:border-ink-3 hover:text-ink"
-              >
-                Finished — rate it
-              </button>
-            </div>
+            {!checked ? (
+              <div className="text-[13px] text-ink-3">Checking your library…</div>
+            ) : existing ? (
+              <div className="rounded-card border border-hairline bg-porcelain px-4 py-3.5">
+                <div className="text-[13.5px] text-ink-2">
+                  {existing.record!.status === 'finished' && existing.rating && (
+                    <>
+                      Already in your library — you rated it{' '}
+                      <b className="tnum font-semibold text-ink">
+                        ★ {existing.rating.verdict.toFixed(1)}
+                      </b>
+                      .
+                    </>
+                  )}
+                  {existing.record!.status === 'finished' && !existing.rating && (
+                    <>Already in your library — finished, but not yet rated.</>
+                  )}
+                  {existing.record!.status === 'abandoned' && (
+                    <>
+                      Already in your library — you stopped
+                      {existing.record!.progressPct != null
+                        ? ` at ${existing.record!.progressPct}%`
+                        : ''}
+                      .
+                    </>
+                  )}
+                  {(existing.record!.status === 'reading' || existing.record!.status === 'paused') && (
+                    <>You’re {existing.record!.status === 'paused' ? 'paused on' : 'reading'} this now.</>
+                  )}
+                  {existing.record!.status === 'queued' && (
+                    <>Already on your want-to-read shortlist.</>
+                  )}
+                </div>
+                <div className="mt-3 flex flex-wrap gap-2.5">
+                  {existing.record!.status === 'finished' && (
+                    <button
+                      onClick={() => {
+                        onClose();
+                        router.push(`/review/${existing.record!.id}`);
+                      }}
+                      className="rounded-btn bg-accent-soft px-4 py-2 text-[13px] font-semibold text-accent-ink transition-colors hover:bg-[#DFE3FD]"
+                    >
+                      {existing.rating ? 'Edit your review' : 'Rate it'}
+                    </button>
+                  )}
+                  {(existing.record!.status === 'reading' || existing.record!.status === 'paused') && (
+                    <button
+                      onClick={() => {
+                        onClose();
+                        router.push(`/review/${existing.record!.id}`);
+                      }}
+                      className="rounded-btn bg-accent-soft px-4 py-2 text-[13px] font-semibold text-accent-ink transition-colors hover:bg-[#DFE3FD]"
+                    >
+                      Finished — rate it
+                    </button>
+                  )}
+                  <button
+                    onClick={() => {
+                      onClose();
+                      router.push(`/library/${existing.book.id}`);
+                    }}
+                    className="rounded-btn border border-hairline px-4 py-2 text-[13px] font-semibold text-ink-2 transition-colors hover:border-ink-3 hover:text-ink"
+                  >
+                    Open book page
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="label-caps mb-2">Format</div>
+                <div className="mb-5 flex gap-2">
+                  {(['audio', 'print', 'ebook'] as Format[]).map((f) => (
+                    <button
+                      key={f}
+                      onClick={() => setFormat(f)}
+                      className={`rounded-full border px-3.5 py-1.5 text-[12.5px] font-medium capitalize transition-colors ${
+                        format === f
+                          ? 'border-accent bg-accent-soft text-accent-ink'
+                          : 'border-hairline bg-porcelain text-ink-2 hover:border-ink-3'
+                      }`}
+                    >
+                      {f}
+                    </button>
+                  ))}
+                </div>
+                <div className="flex flex-wrap gap-2.5">
+                  <button
+                    onClick={() => save('reading')}
+                    disabled={saving}
+                    className="rounded-btn bg-accent px-5 py-2.5 text-[14px] font-semibold text-white transition-colors hover:bg-accent-ink"
+                  >
+                    Start reading
+                  </button>
+                  <button
+                    onClick={() => save('queued')}
+                    disabled={saving}
+                    className="rounded-btn bg-accent-soft px-5 py-2.5 text-[14px] font-semibold text-accent-ink transition-colors hover:bg-[#DFE3FD]"
+                  >
+                    Want to read
+                  </button>
+                  <button
+                    onClick={() => save('finished')}
+                    disabled={saving}
+                    className="rounded-btn border border-hairline px-5 py-2.5 text-[14px] font-semibold text-ink-2 transition-colors hover:border-ink-3 hover:text-ink"
+                  >
+                    Finished — rate it
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         )}
       </div>

@@ -171,9 +171,9 @@ export default function ForYou() {
               </button>
               <button
                 onClick={() => addToQueue(hero)}
-                className="rounded-btn border border-hairline px-5 py-[11px] text-[14px] font-semibold text-ink-2 transition-colors hover:border-ink-3 hover:text-ink"
+                className="rounded-btn bg-accent-soft px-5 py-[11px] text-[14px] font-semibold text-accent-ink transition-colors hover:bg-[#DFE3FD]"
               >
-                Add to queue
+                Want to read
               </button>
               <button
                 onClick={() => notForMe(hero)}
