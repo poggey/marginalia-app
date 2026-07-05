@@ -42,7 +42,13 @@ function Library() {
       db.ratings.toArray(),
     ]);
     const booksById = new Map(books.map((b) => [b.id, b]));
-    const ratingByRecord = new Map(ratings.map((r) => [r.readingRecordId, r]));
+    const recordsById = new Map(records.map((r) => [r.id, r]));
+    // One review per book, whichever encounter it hangs off.
+    const ratingByBook = new Map<string, Rating>();
+    for (const rt of [...ratings].sort((a, b) => a.ratedAt.localeCompare(b.ratedAt))) {
+      const rec = recordsById.get(rt.readingRecordId);
+      if (rec) ratingByBook.set(rec.bookId, rt);
+    }
     // The Library is the ledger: books with at least one encounter. Latest record wins.
     const latest = new Map<string, ReadingRecord>();
     const sorted = [...records].sort((a, b) =>
@@ -53,7 +59,7 @@ function Library() {
       .map((record) => ({
         book: booksById.get(record.bookId),
         record,
-        rating: ratingByRecord.get(record.id),
+        rating: ratingByBook.get(record.bookId),
       }))
       .filter((r): r is { book: Book; record: ReadingRecord; rating: Rating | undefined } => !!r.book)
       .reverse();

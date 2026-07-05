@@ -32,6 +32,7 @@ export default function BookPage({ params }: { params: Promise<{ bookId: string 
   const [axes, setAxes] = useState<Record<Axis, number> | null>(null);
   const [dirty, setDirty] = useState(false);
   const [confirmReread, setConfirmReread] = useState(false);
+  const [adjustCount, setAdjustCount] = useState(false);
   useEffect(() => {
     if (data?.book && !dirty) setAxes({ ...data.book.axes });
   }, [data?.book, dirty]);
@@ -46,19 +47,14 @@ export default function BookPage({ params }: { params: Promise<{ bookId: string 
     ),
   );
   const latest: ReadingRecord | undefined = ordered[ordered.length - 1];
-  const latestRating = latest
-    ? ratings.find((r) => r.readingRecordId === latest.id)
-    : undefined;
-  const readCount = records.filter((r) => r.status === 'finished').length;
+  // One review per book — whichever encounter it was written against.
+  const bookRating = [...ratings].sort((a, b) => a.ratedAt.localeCompare(b.ratedAt))[ratings.length - 1];
+  const finishedRecords = ordered.filter((r) => r.status === 'finished');
+  const readCount = finishedRecords.length;
 
-  // A re-read never buries the earlier encounter: surface the most recent
-  // previous finished record and its rating alongside the current state.
   const previousFinished = [...ordered]
     .reverse()
     .find((r) => r.status === 'finished' && r.id !== latest?.id);
-  const previousRating = previousFinished
-    ? ratings.find((r) => r.readingRecordId === previousFinished.id)
-    : undefined;
   const isReread = !!previousFinished;
 
   const state: 'unread' | 'queued' | 'reading' | 'finished' | 'abandoned' =
@@ -102,6 +98,26 @@ export default function BookPage({ params }: { params: Promise<{ bookId: string 
     });
   }
 
+  // The read count is just the number of finished encounters — adjustable
+  // (accidental clicks happen) without ever touching the review.
+  async function incrementReads() {
+    await db.records.add({
+      id: crypto.randomUUID(),
+      userId: USER_ID,
+      bookId,
+      status: 'finished',
+      sessions: [],
+    });
+  }
+
+  async function decrementReads() {
+    if (finishedRecords.length <= 1) return;
+    const removable = [...finishedRecords]
+      .reverse()
+      .find((r) => r.id !== bookRating?.readingRecordId);
+    if (removable) await db.records.delete(removable.id);
+  }
+
   // "Already read it" — turn the current encounter (or a fresh one) into a
   // finished record and open the review.
   async function alreadyRead() {
@@ -133,12 +149,12 @@ export default function BookPage({ params }: { params: Promise<{ bookId: string 
             <h2 className="font-serif text-[24px] font-medium leading-tight">Read it again?</h2>
             <p className="mt-2.5 text-[14px] leading-relaxed text-ink-2">
               This begins a fresh encounter with <em>{book.title}</em>. Your existing review
-              {latestRating ? (
-                <> — <b className="tnum font-semibold text-ink">★ {latestRating.verdict.toFixed(1)}</b> —</>
+              {bookRating ? (
+                <> — <b className="tnum font-semibold text-ink">★ {bookRating.verdict.toFixed(1)}</b> —</>
               ) : (
                 ''
               )}{' '}
-              stays on the shelf; you’ll rate the re-read on its own when you finish.
+              stays on the shelf — you can update it when you finish.
             </p>
             <div className="mt-6 flex gap-2.5">
               <button
@@ -196,7 +212,7 @@ export default function BookPage({ params }: { params: Promise<{ bookId: string 
               >
                 {latest!.status === 'paused' ? 'Resume' : 'Pause'}
               </button>
-              {isReread && !latestRating && (
+              {isReread && latest!.id !== bookRating?.readingRecordId && (
                 <button onClick={() => db.records.delete(latest!.id)} className={BTN.quiet}>
                   Cancel re-read
                 </button>
@@ -206,7 +222,7 @@ export default function BookPage({ params }: { params: Promise<{ bookId: string 
           {state === 'finished' && (
             <>
               <button onClick={() => router.push(`/review/${latest!.id}`)} className={BTN.soft}>
-                {latestRating ? 'Edit your review' : 'Rate it'}
+                {bookRating ? 'Edit your review' : 'Rate it'}
               </button>
               <button onClick={() => setConfirmReread(true)} className={BTN.quiet}>
                 Read it again
@@ -239,8 +255,41 @@ export default function BookPage({ params }: { params: Promise<{ bookId: string 
               <span className="text-[13px] font-semibold uppercase tracking-[.08em] text-positive">
                 ✓ Read{readCount > 1 ? ` ×${readCount}` : ''}
               </span>
-              {latestRating ? (
-                <span className="tnum text-[16px] font-semibold">★ {latestRating.verdict.toFixed(1)}</span>
+              {adjustCount ? (
+                <span className="flex items-center gap-1.5">
+                  <button
+                    onClick={decrementReads}
+                    disabled={readCount <= 1}
+                    aria-label="One fewer read"
+                    className="h-6 w-6 rounded-full border border-hairline text-[13px] font-semibold leading-none text-ink-2 hover:border-ink-3 hover:text-ink disabled:opacity-30"
+                  >
+                    −
+                  </button>
+                  <span className="tnum w-5 text-center text-[13px] font-semibold">{readCount}</span>
+                  <button
+                    onClick={incrementReads}
+                    aria-label="One more read"
+                    className="h-6 w-6 rounded-full border border-hairline text-[13px] font-semibold leading-none text-ink-2 hover:border-ink-3 hover:text-ink"
+                  >
+                    +
+                  </button>
+                  <button
+                    onClick={() => setAdjustCount(false)}
+                    className="ml-1 text-[12.5px] font-semibold text-accent hover:text-accent-ink"
+                  >
+                    Done
+                  </button>
+                </span>
+              ) : (
+                <button
+                  onClick={() => setAdjustCount(true)}
+                  className="text-[12px] font-medium text-ink-3 underline decoration-hairline underline-offset-2 hover:text-ink-2"
+                >
+                  adjust count
+                </button>
+              )}
+              {bookRating ? (
+                <span className="tnum text-[16px] font-semibold">★ {bookRating.verdict.toFixed(1)}</span>
               ) : (
                 <span className="text-[13.5px] text-ink-2">finished, not yet rated</span>
               )}
@@ -254,13 +303,13 @@ export default function BookPage({ params }: { params: Promise<{ bookId: string 
                   {latest.format === 'audio' ? 'listened' : latest.format}
                 </span>
               )}
-              {latestRating?.wouldReread && (
+              {bookRating?.wouldReread && (
                 <span className="text-[13px] text-ink-2">would re-read</span>
               )}
             </div>
-            {latestRating?.note && (
+            {bookRating?.note && (
               <p className="mt-2.5 max-w-[52ch] border-l-2 border-hairline pl-4 text-[14px] italic text-ink-2">
-                {latestRating.note}
+                {bookRating.note}
               </p>
             )}
           </div>
@@ -289,9 +338,9 @@ export default function BookPage({ params }: { params: Promise<{ bookId: string 
               <span className="text-[13px] font-semibold uppercase tracking-[.08em] text-positive">
                 ✓ Previously read
               </span>
-              {previousRating && (
+              {bookRating && (
                 <span className="tnum text-[16px] font-semibold">
-                  ★ {previousRating.verdict.toFixed(1)}
+                  ★ {bookRating.verdict.toFixed(1)}
                 </span>
               )}
               {previousFinished.finishedAt && (
@@ -301,7 +350,7 @@ export default function BookPage({ params }: { params: Promise<{ bookId: string 
                   })}
                 </span>
               )}
-              {previousRating && (
+              {bookRating && (
                 <button
                   onClick={() => router.push(`/review/${previousFinished.id}`)}
                   className="text-[12.5px] font-semibold text-accent hover:text-accent-ink"
@@ -310,9 +359,9 @@ export default function BookPage({ params }: { params: Promise<{ bookId: string 
                 </button>
               )}
             </div>
-            {previousRating?.note && (
+            {bookRating?.note && (
               <p className="mt-2.5 max-w-[52ch] border-l-2 border-hairline pl-4 text-[14px] italic text-ink-2">
-                {previousRating.note}
+                {bookRating.note}
               </p>
             )}
           </div>

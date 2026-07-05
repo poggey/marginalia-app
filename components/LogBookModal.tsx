@@ -31,10 +31,12 @@ async function findExisting(result: BookSearchResult): Promise<ExistingState | n
       b.startedAt ?? b.finishedAt ?? b.queuedAt ?? '',
     ),
   )[records.length - 1];
-  const rating = record
-    ? await db.ratings.where('readingRecordId').equals(record.id).first()
-    : undefined;
-  return { book, record, rating };
+  // One review per book — it may hang off any of the book's records.
+  const recordIds = new Set(records.map((r) => r.id));
+  const ratings = (await db.ratings.toArray())
+    .filter((r) => recordIds.has(r.readingRecordId))
+    .sort((a, b) => a.ratedAt.localeCompare(b.ratedAt));
+  return { book, record, rating: ratings[ratings.length - 1] };
 }
 
 // Sub-15-second logging: search → pick → one status tap. Cache-at-write.

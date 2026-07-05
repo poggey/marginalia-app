@@ -29,11 +29,22 @@ function Review({ params }: { params: Promise<{ recordId: string }> }) {
   const router = useRouter();
   const dnfMode = useSearchParams().get('mode') === 'dnf';
 
+  // One review per book: whatever encounter opened this page, we load and
+  // update the book's single review — a re-read edits it, never duplicates it.
   const data = useLiveQuery(async () => {
     const record = await db.records.get(recordId);
     const book = record ? await db.books.get(record.bookId) : undefined;
-    const existing = await db.ratings.where('readingRecordId').equals(recordId).first();
-    return { record, book, existing };
+    let existing;
+    let bookRecordIds: string[] = [];
+    if (record) {
+      const recs = await db.records.where('bookId').equals(record.bookId).toArray();
+      bookRecordIds = recs.map((r) => r.id);
+      const bookRatings = (await db.ratings.toArray())
+        .filter((r) => bookRecordIds.includes(r.readingRecordId))
+        .sort((a, b) => a.ratedAt.localeCompare(b.ratedAt));
+      existing = bookRatings[bookRatings.length - 1];
+    }
+    return { record, book, existing, bookRecordIds };
   }, [recordId]);
 
   const [axes, setAxes] = useState({ ideas: 5, pace: 5, characters: 5, prose: 5, ending: 5 });
@@ -67,11 +78,14 @@ function Review({ params }: { params: Promise<{ recordId: string }> }) {
   }, [data, prefilled]);
 
   if (!data) return null;
-  const { record, book, existing } = data;
+  const { record, book, existing, bookRecordIds } = data;
   if (!record || !book) {
     return <div className="pt-16 text-[14px] text-ink-3">That reading record no longer exists.</div>;
   }
   const editing = !!existing;
+  // Finishing an encounter now (first read or a re-read) refreshes the
+  // review's recency; a pure edit of an already-finished read does not.
+  const finishingNow = record.status !== 'finished';
 
   async function confirmRating() {
     if (verdict === null || saving) return;
@@ -83,14 +97,17 @@ function Review({ params }: { params: Promise<{ recordId: string }> }) {
         finishedAt: record!.finishedAt ?? now,
         format: format ?? undefined,
       });
+      let keptId: string;
       if (existing) {
-        // Editing the same encounter: ratedAt stays put so recency is honest.
+        keptId = existing.id;
         await db.ratings.update(existing.id, {
           axes, verdict, wouldReread, moods, note: note.trim() || undefined,
+          ...(finishingNow ? { readingRecordId: recordId, ratedAt: now } : {}),
         });
       } else {
+        keptId = crypto.randomUUID();
         await db.ratings.add({
-          id: crypto.randomUUID(),
+          id: keptId,
           userId: USER_ID,
           readingRecordId: recordId,
           axes,
@@ -101,6 +118,11 @@ function Review({ params }: { params: Promise<{ recordId: string }> }) {
           ratedAt: now,
         });
       }
+      // Enforce one review per book: clear strays left by older versions.
+      const strays = (await db.ratings.toArray()).filter(
+        (r) => r.id !== keptId && bookRecordIds.includes(r.readingRecordId),
+      );
+      if (strays.length) await db.ratings.bulkDelete(strays.map((r) => r.id));
       if (toneTouched && toneAxes) {
         // The reader's perception is ground truth (§IV).
         await db.books.update(book!.id, { axes: toneAxes, profileVerified: true });
@@ -144,13 +166,21 @@ function Review({ params }: { params: Promise<{ recordId: string }> }) {
         <BookCover book={book} className="h-[120px] w-[80px] shrink-0" titleSize={11} />
         <div>
           <div className="label-caps mb-1.5">
-            {dnfMode ? 'Stopping' : editing ? 'Editing your review' : 'The sixty-second review'}
+            {dnfMode
+              ? 'Stopping'
+              : editing
+                ? finishingNow
+                  ? 'Back again — your review'
+                  : 'Editing your review'
+                : 'The sixty-second review'}
           </div>
           <h1 className="font-serif text-[28px] font-medium leading-[1.15]">{book.title}</h1>
           <div className="text-[14px] text-ink-2">{book.author}</div>
           {editing && !dnfMode && (
             <div className="mt-1 text-[13px] text-ink-3">
-              You rated this ★ {existing!.verdict.toFixed(1)} — changes replace that review.
+              {finishingNow
+                ? `You've read this before (★ ${existing!.verdict.toFixed(1)}) — update your review if this read changed your mind.`
+                : `You rated this ★ ${existing!.verdict.toFixed(1)} — changes replace that review.`}
             </div>
           )}
         </div>
