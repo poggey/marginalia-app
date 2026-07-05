@@ -16,11 +16,6 @@ const RATING_AXES = [
   { key: 'ending', label: 'Ending' },
 ] as const;
 
-const MOODS = [
-  'gripped', 'cosy', 'awed', 'moved', 'amused',
-  'unsettled', 'nostalgic', 'challenged', 'soothed', 'electrified',
-];
-
 export default function ReviewPage({ params }: { params: Promise<{ recordId: string }> }) {
   return (
     <Suspense fallback={null}>
@@ -264,31 +259,6 @@ function Review({ params }: { params: Promise<{ recordId: string }> }) {
             >
               {wouldReread ? 'Yes — gladly' : 'Probably not'}
             </button>
-          </div>
-
-          <div className="mt-6">
-            <div className="label-caps mb-2.5">Mood — up to three</div>
-            <div className="flex flex-wrap gap-2">
-              {MOODS.map((m) => {
-                const on = moods.includes(m);
-                return (
-                  <button
-                    key={m}
-                    onClick={() =>
-                      setMoods(on ? moods.filter((x) => x !== m) : moods.length < 3 ? [...moods, m] : moods)
-                    }
-                    aria-pressed={on}
-                    className={`rounded-full border px-3.5 py-1.5 text-[12.5px] font-medium transition-colors ${
-                      on
-                        ? 'border-accent bg-accent-soft text-accent-ink'
-                        : 'border-hairline bg-porcelain text-ink-2 hover:border-ink-3'
-                    }`}
-                  >
-                    {m}
-                  </button>
-                );
-              })}
-            </div>
           </div>
 
           <textarea

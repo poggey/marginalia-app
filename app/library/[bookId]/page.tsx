@@ -31,6 +31,7 @@ export default function BookPage({ params }: { params: Promise<{ bookId: string 
 
   const [axes, setAxes] = useState<Record<Axis, number> | null>(null);
   const [dirty, setDirty] = useState(false);
+  const [confirmReread, setConfirmReread] = useState(false);
   useEffect(() => {
     if (data?.book && !dirty) setAxes({ ...data.book.axes });
   }, [data?.book, dirty]);
@@ -49,6 +50,16 @@ export default function BookPage({ params }: { params: Promise<{ bookId: string 
     ? ratings.find((r) => r.readingRecordId === latest.id)
     : undefined;
   const readCount = records.filter((r) => r.status === 'finished').length;
+
+  // A re-read never buries the earlier encounter: surface the most recent
+  // previous finished record and its rating alongside the current state.
+  const previousFinished = [...ordered]
+    .reverse()
+    .find((r) => r.status === 'finished' && r.id !== latest?.id);
+  const previousRating = previousFinished
+    ? ratings.find((r) => r.readingRecordId === previousFinished.id)
+    : undefined;
+  const isReread = !!previousFinished;
 
   const state: 'unread' | 'queued' | 'reading' | 'finished' | 'abandoned' =
     !latest ? 'unread'
@@ -105,7 +116,49 @@ export default function BookPage({ params }: { params: Promise<{ bookId: string 
   }
 
   return (
-    <div className="mt-11 grid grid-cols-1 gap-12 md:grid-cols-[220px_1fr]">
+    <>
+      {confirmReread && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Read it again?"
+          className="fixed inset-0 z-50 flex items-start justify-center bg-ink/20 p-6 pt-[24vh]"
+          onClick={() => setConfirmReread(false)}
+          onKeyDown={(e) => e.key === 'Escape' && setConfirmReread(false)}
+        >
+          <div
+            className="w-full max-w-[440px] rounded-panel border border-hairline bg-surface p-8 shadow-raised"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 className="font-serif text-[24px] font-medium leading-tight">Read it again?</h2>
+            <p className="mt-2.5 text-[14px] leading-relaxed text-ink-2">
+              This begins a fresh encounter with <em>{book.title}</em>. Your existing review
+              {latestRating ? (
+                <> — <b className="tnum font-semibold text-ink">★ {latestRating.verdict.toFixed(1)}</b> —</>
+              ) : (
+                ''
+              )}{' '}
+              stays on the shelf; you’ll rate the re-read on its own when you finish.
+            </p>
+            <div className="mt-6 flex gap-2.5">
+              <button
+                autoFocus
+                onClick={async () => {
+                  setConfirmReread(false);
+                  await startReading();
+                }}
+                className={BTN.primary}
+              >
+                Start re-reading
+              </button>
+              <button onClick={() => setConfirmReread(false)} className={BTN.quiet}>
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      <div className="mt-11 grid grid-cols-1 gap-12 md:grid-cols-[220px_1fr]">
       <div>
         <BookCover book={book} className="h-[330px] w-[220px] shadow-cover" titleSize={17} />
         <div className="mt-6 flex flex-col gap-2.5">
@@ -143,6 +196,11 @@ export default function BookPage({ params }: { params: Promise<{ bookId: string 
               >
                 {latest!.status === 'paused' ? 'Resume' : 'Pause'}
               </button>
+              {isReread && !latestRating && (
+                <button onClick={() => db.records.delete(latest!.id)} className={BTN.quiet}>
+                  Cancel re-read
+                </button>
+              )}
             </>
           )}
           {state === 'finished' && (
@@ -150,7 +208,9 @@ export default function BookPage({ params }: { params: Promise<{ bookId: string 
               <button onClick={() => router.push(`/review/${latest!.id}`)} className={BTN.soft}>
                 {latestRating ? 'Edit your review' : 'Rate it'}
               </button>
-              <button onClick={startReading} className={BTN.quiet}>Read it again</button>
+              <button onClick={() => setConfirmReread(true)} className={BTN.quiet}>
+                Read it again
+              </button>
             </>
           )}
           {state === 'abandoned' && (
@@ -197,9 +257,6 @@ export default function BookPage({ params }: { params: Promise<{ bookId: string 
               {latestRating?.wouldReread && (
                 <span className="text-[13px] text-ink-2">would re-read</span>
               )}
-              {latestRating && latestRating.moods.length > 0 && (
-                <span className="text-[13px] text-ink-3">{latestRating.moods.join(' · ')}</span>
-              )}
             </div>
             {latestRating?.note && (
               <p className="mt-2.5 max-w-[52ch] border-l-2 border-hairline pl-4 text-[14px] italic text-ink-2">
@@ -219,9 +276,45 @@ export default function BookPage({ params }: { params: Promise<{ bookId: string 
         )}
         {state === 'reading' && (
           <div className="mt-5 text-[14px] text-ink-2">
-            {latest!.status === 'paused' ? 'Paused' : 'Reading now'}
+            {latest!.status === 'paused' ? 'Paused' : isReread ? 'Re-reading now' : 'Reading now'}
             {latest?.startedAt &&
               ` · since ${new Date(latest.startedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long' })}`}
+          </div>
+        )}
+
+        {/* The earlier encounter stays on the shelf, whatever you're doing now. */}
+        {state !== 'finished' && previousFinished && (
+          <div className="mt-4 rounded-card border border-hairline bg-surface px-5 py-4">
+            <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+              <span className="text-[13px] font-semibold uppercase tracking-[.08em] text-positive">
+                ✓ Previously read
+              </span>
+              {previousRating && (
+                <span className="tnum text-[16px] font-semibold">
+                  ★ {previousRating.verdict.toFixed(1)}
+                </span>
+              )}
+              {previousFinished.finishedAt && (
+                <span className="text-[13px] text-ink-3">
+                  {new Date(previousFinished.finishedAt).toLocaleDateString('en-GB', {
+                    day: 'numeric', month: 'long', year: 'numeric',
+                  })}
+                </span>
+              )}
+              {previousRating && (
+                <button
+                  onClick={() => router.push(`/review/${previousFinished.id}`)}
+                  className="text-[12.5px] font-semibold text-accent hover:text-accent-ink"
+                >
+                  View · edit that review
+                </button>
+              )}
+            </div>
+            {previousRating?.note && (
+              <p className="mt-2.5 max-w-[52ch] border-l-2 border-hairline pl-4 text-[14px] italic text-ink-2">
+                {previousRating.note}
+              </p>
+            )}
           </div>
         )}
         {state === 'queued' && (
@@ -298,6 +391,7 @@ export default function BookPage({ params }: { params: Promise<{ bookId: string 
           </div>
         </section>
       </div>
-    </div>
+      </div>
+    </>
   );
 }
