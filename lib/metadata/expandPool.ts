@@ -1,7 +1,7 @@
 import { db } from '@/lib/db';
 import type { Book } from '@/lib/types';
 import { searchOpenLibrary } from './openlibrary';
-import { autoAxes, cleanThemeTags } from './autoProfile';
+import { cleanThemeTags, inferAxes, type ProfileHint } from './autoProfile';
 
 // On-demand candidate expansion (white paper §X): when the local pool runs
 // thin, consult Open Library for books matching the reader's loved theme tags
@@ -74,13 +74,19 @@ export async function expandCandidatePool(): Promise<number> {
   const known = new Set(books.map((b) => `${b.title.toLowerCase()}|${b.author.toLowerCase()}`));
   // Popularity floor: the corpus philosophy is widely read titles. Tag hits
   // must be well-logged; a loved author's deeper cuts get more latitude.
-  const queries = [
-    ...topTags.map((t) => ({ q: `subject:"${GENRE_ANCHOR}" subject:"${t}"`, minLogs: 30 })),
-    ...topAuthors.map((a) => ({ q: `author:"${a}"`, minLogs: 5 })),
+  // The hint records *why* each book was fetched — the strongest evidence
+  // for inferring its tone profile.
+  const queries: { q: string; minLogs: number; hint: ProfileHint }[] = [
+    ...topTags.map((t) => ({
+      q: `subject:"${GENRE_ANCHOR}" subject:"${t}"`,
+      minLogs: 30,
+      hint: { tag: t.replace(/ /g, '-') },
+    })),
+    ...topAuthors.map((a) => ({ q: `author:"${a}"`, minLogs: 5, hint: { author: a } })),
   ];
 
   const additions: Book[] = [];
-  for (const { q, minLogs } of queries) {
+  for (const { q, minLogs, hint } of queries) {
     if (additions.length >= EXPANSION_CAP) break;
     try {
       const results = await searchOpenLibrary(q + ' language:eng', {
@@ -109,6 +115,10 @@ export async function expandCandidatePool(): Promise<number> {
         const key = `${r.title.toLowerCase()}|${r.author.toLowerCase()}`;
         if (known.has(key)) continue;
         known.add(key);
+        // The provenance tag is true by construction (it matched the query) —
+        // keep it on the book so tag similarity connects.
+        const themeTags = cleanThemeTags(r.subjects);
+        if (hint.tag && !themeTags.includes(hint.tag)) themeTags.unshift(hint.tag);
         additions.push({
           id: crypto.randomUUID(),
           isbn: r.isbn,
@@ -118,8 +128,8 @@ export async function expandCandidatePool(): Promise<number> {
           pages: r.pages,
           coverUrl: r.coverUrl,
           subjects: r.subjects,
-          axes: autoAxes(r.subjects),
-          themeTags: cleanThemeTags(r.subjects),
+          axes: inferAxes(r.subjects, themeTags, books, hint),
+          themeTags,
           profileVerified: false,
           source: 'openlibrary',
         });

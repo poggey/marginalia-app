@@ -2,7 +2,7 @@ import { db } from '@/lib/db';
 import type { Book } from '@/lib/types';
 import { searchOpenLibrary } from './openlibrary';
 import { searchGoogleBooks } from './googlebooks';
-import { autoAxes, cleanThemeTags } from './autoProfile';
+import { cleanThemeTags, inferAxes } from './autoProfile';
 import type { BookSearchResult } from './types';
 
 // Open Library first, Google Books fallback (white paper §X).
@@ -30,6 +30,8 @@ export async function cacheBookFromResult(result: BookSearchResult): Promise<Boo
     .first();
   if (existing) return existing;
 
+  const corpus = await db.books.toArray();
+  const themeTags = cleanThemeTags(result.subjects);
   const book: Book = {
     id: crypto.randomUUID(),
     isbn: result.isbn,
@@ -39,8 +41,8 @@ export async function cacheBookFromResult(result: BookSearchResult): Promise<Boo
     pages: result.pages,
     coverUrl: result.coverUrl,
     subjects: result.subjects,
-    axes: autoAxes(result.subjects),
-    themeTags: cleanThemeTags(result.subjects),
+    axes: inferAxes(result.subjects, themeTags, corpus, { author: result.author }),
+    themeTags,
     profileVerified: false,
     source: result.source,
   };

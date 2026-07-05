@@ -6,37 +6,37 @@
     "shortlist": [
       {
         "id": "seed-dark-matter",
-        "rHat": 4.154,
-        "band": 0.6,
-        "nov": 0.164,
-        "wildcard": false
-      },
-      {
-        "id": "seed-to-sleep-in-a-sea-of-stars",
-        "rHat": 3.826,
-        "band": 0.8,
-        "nov": 0.225,
-        "wildcard": false
-      },
-      {
-        "id": "seed-seveneves",
-        "rHat": 3.71,
-        "band": 1,
-        "nov": 0.19,
-        "wildcard": false
-      },
-      {
-        "id": "seed-the-first-fifteen-lives-of-harry-august",
-        "rHat": 3.61,
-        "band": 1,
-        "nov": 0.232,
+        "rHat": 3.898,
+        "band": 0.7,
+        "nov": 0.184,
         "wildcard": false
       },
       {
         "id": "seed-a-fire-upon-the-deep",
-        "rHat": 3.703,
+        "rHat": 3.779,
+        "band": 1.1,
+        "nov": 0.251,
+        "wildcard": false
+      },
+      {
+        "id": "seed-the-left-hand-of-darkness",
+        "rHat": 3.542,
+        "band": 1.2,
+        "nov": 0.446,
+        "wildcard": false
+      },
+      {
+        "id": "seed-the-first-fifteen-lives-of-harry-august",
+        "rHat": 3.7,
+        "band": 1.1,
+        "nov": 0.451,
+        "wildcard": false
+      },
+      {
+        "id": "seed-to-sleep-in-a-sea-of-stars",
+        "rHat": 3.809,
         "band": 0.9,
-        "nov": 0.206,
+        "nov": 0.456,
         "wildcard": false
       }
     ]
@@ -44,41 +44,41 @@
   {
     "stop": "Familiar",
     "delta": 0.12,
-    "hero": "seed-dark-matter",
+    "hero": "seed-to-sleep-in-a-sea-of-stars",
     "shortlist": [
       {
-        "id": "seed-dark-matter",
-        "rHat": 4.154,
-        "band": 0.6,
-        "nov": 0.164,
-        "wildcard": false
-      },
-      {
         "id": "seed-to-sleep-in-a-sea-of-stars",
-        "rHat": 3.826,
-        "band": 0.8,
-        "nov": 0.225,
-        "wildcard": false
-      },
-      {
-        "id": "seed-seveneves",
-        "rHat": 3.71,
-        "band": 1,
-        "nov": 0.19,
+        "rHat": 3.809,
+        "band": 0.9,
+        "nov": 0.456,
         "wildcard": false
       },
       {
         "id": "seed-the-left-hand-of-darkness",
-        "rHat": 3.475,
+        "rHat": 3.542,
+        "band": 1.2,
+        "nov": 0.446,
+        "wildcard": false
+      },
+      {
+        "id": "seed-dark-matter",
+        "rHat": 3.898,
+        "band": 0.7,
+        "nov": 0.184,
+        "wildcard": false
+      },
+      {
+        "id": "seed-seveneves",
+        "rHat": 3.629,
         "band": 1.1,
-        "nov": 0.253,
+        "nov": 0.271,
         "wildcard": false
       },
       {
         "id": "seed-the-first-fifteen-lives-of-harry-august",
-        "rHat": 3.61,
-        "band": 1,
-        "nov": 0.232,
+        "rHat": 3.7,
+        "band": 1.1,
+        "nov": 0.451,
         "wildcard": false
       }
     ]
@@ -86,41 +86,41 @@
   {
     "stop": "Adjacent",
     "delta": 0.25,
-    "hero": "seed-dark-matter",
+    "hero": "seed-to-sleep-in-a-sea-of-stars",
     "shortlist": [
       {
-        "id": "seed-dark-matter",
-        "rHat": 4.154,
-        "band": 0.6,
-        "nov": 0.164,
-        "wildcard": false
-      },
-      {
         "id": "seed-to-sleep-in-a-sea-of-stars",
-        "rHat": 3.826,
-        "band": 0.8,
-        "nov": 0.225,
+        "rHat": 3.809,
+        "band": 0.9,
+        "nov": 0.456,
         "wildcard": false
       },
       {
         "id": "seed-the-left-hand-of-darkness",
-        "rHat": 3.475,
-        "band": 1.1,
-        "nov": 0.253,
+        "rHat": 3.542,
+        "band": 1.2,
+        "nov": 0.446,
+        "wildcard": false
+      },
+      {
+        "id": "seed-dark-matter",
+        "rHat": 3.898,
+        "band": 0.7,
+        "nov": 0.184,
         "wildcard": false
       },
       {
         "id": "seed-seveneves",
-        "rHat": 3.71,
-        "band": 1,
-        "nov": 0.19,
+        "rHat": 3.629,
+        "band": 1.1,
+        "nov": 0.271,
         "wildcard": false
       },
       {
         "id": "seed-the-first-fifteen-lives-of-harry-august",
-        "rHat": 3.61,
-        "band": 1,
-        "nov": 0.232,
+        "rHat": 3.7,
+        "band": 1.1,
+        "nov": 0.451,
         "wildcard": false
       }
     ]
@@ -128,41 +128,41 @@
   {
     "stop": "Far",
     "delta": 0.42,
-    "hero": "seed-dark-matter",
+    "hero": "seed-to-sleep-in-a-sea-of-stars",
     "shortlist": [
       {
-        "id": "seed-dark-matter",
-        "rHat": 4.154,
-        "band": 0.6,
-        "nov": 0.164,
-        "wildcard": false
-      },
-      {
         "id": "seed-to-sleep-in-a-sea-of-stars",
-        "rHat": 3.826,
-        "band": 0.8,
-        "nov": 0.225,
+        "rHat": 3.809,
+        "band": 0.9,
+        "nov": 0.456,
         "wildcard": false
       },
       {
         "id": "seed-the-left-hand-of-darkness",
-        "rHat": 3.475,
-        "band": 1.1,
-        "nov": 0.253,
+        "rHat": 3.542,
+        "band": 1.2,
+        "nov": 0.446,
         "wildcard": false
       },
       {
         "id": "seed-seveneves",
-        "rHat": 3.71,
-        "band": 1,
-        "nov": 0.19,
+        "rHat": 3.629,
+        "band": 1.1,
+        "nov": 0.271,
         "wildcard": false
       },
       {
         "id": "seed-the-first-fifteen-lives-of-harry-august",
-        "rHat": 3.61,
-        "band": 1,
-        "nov": 0.232,
+        "rHat": 3.7,
+        "band": 1.1,
+        "nov": 0.451,
+        "wildcard": false
+      },
+      {
+        "id": "seed-dune",
+        "rHat": 3.605,
+        "band": 1.1,
+        "nov": 0.33,
         "wildcard": true
       }
     ]
@@ -174,37 +174,37 @@
     "shortlist": [
       {
         "id": "seed-to-sleep-in-a-sea-of-stars",
-        "rHat": 3.826,
-        "band": 0.8,
-        "nov": 0.225,
+        "rHat": 3.809,
+        "band": 0.9,
+        "nov": 0.456,
         "wildcard": false
       },
       {
         "id": "seed-the-left-hand-of-darkness",
-        "rHat": 3.475,
-        "band": 1.1,
-        "nov": 0.253,
-        "wildcard": false
-      },
-      {
-        "id": "seed-dark-matter",
-        "rHat": 4.154,
-        "band": 0.6,
-        "nov": 0.164,
+        "rHat": 3.542,
+        "band": 1.2,
+        "nov": 0.446,
         "wildcard": false
       },
       {
         "id": "seed-the-first-fifteen-lives-of-harry-august",
-        "rHat": 3.61,
-        "band": 1,
-        "nov": 0.232,
+        "rHat": 3.7,
+        "band": 1.1,
+        "nov": 0.451,
+        "wildcard": false
+      },
+      {
+        "id": "seed-seveneves",
+        "rHat": 3.629,
+        "band": 1.1,
+        "nov": 0.271,
         "wildcard": false
       },
       {
         "id": "seed-dune",
-        "rHat": 3.485,
-        "band": 1,
-        "nov": 0.221,
+        "rHat": 3.605,
+        "band": 1.1,
+        "nov": 0.33,
         "wildcard": true
       }
     ]

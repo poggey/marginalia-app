@@ -105,4 +105,25 @@ describe('hard filters (§5.6)', () => {
     const { pool } = applyHardFilters(BOOKS, ctx({ prefs: [inert] }));
     expect(pool.length).toBe(BOOKS.length);
   });
+
+  it('profile-knowledge gate: near-neutral unverified profiles cannot be recommended', () => {
+    const neutralAxes = Object.fromEntries(
+      Object.keys(BOOKS[0].axes).map((a) => [a, 0.5]),
+    ) as Book['axes'];
+    const unknown: Book = {
+      id: 'x-unknown', title: 'Mystery Meat', author: 'Nobody', audioHours: 10,
+      subjects: [], axes: { ...neutralAxes, pace: 0.8 }, themeTags: ['thriller'],
+      profileVerified: false, source: 'openlibrary',
+    };
+    const verified: Book = { ...unknown, id: 'x-verified', title: 'Known Quantity', profileVerified: true };
+    const informative: Book = {
+      ...unknown, id: 'x-informative', title: 'Well Described',
+      axes: { ...BOOKS[3].axes },
+    };
+    const books = [unknown, verified, informative];
+    const byId = new Map(books.map((b) => [b.id, b]));
+    const { pool, excluded } = applyHardFilters(books, ctx({ booksById: byId }));
+    expect(pool.map((b) => b.id).sort()).toEqual(['x-informative', 'x-verified']);
+    expect(excluded.find((e) => e.bookId === 'x-unknown')?.reason).toMatch(/tone profile unknown/);
+  });
 });

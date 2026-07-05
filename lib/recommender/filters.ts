@@ -1,5 +1,20 @@
-import type { Book, ReadingRecord, StandingPreference } from '@/lib/types';
-import { MS_PER_MONTH, WRONG_MOOD_SUPPRESS_MONTHS } from './constants';
+import { AXES, type Book, type ReadingRecord, type StandingPreference } from '@/lib/types';
+import {
+  AXIS_NEUTRAL, MIN_PROFILE_DEVIATION, MS_PER_MONTH, WRONG_MOOD_SUPPRESS_MONTHS,
+} from './constants';
+
+/**
+ * A neutral tone profile is unknown, not average — recommending on it is
+ * guessing. Reader-verified and deck-authored profiles are always trusted;
+ * anything else must carry real information on its axes.
+ */
+export function profileInformative(book: Book): boolean {
+  if (book.profileVerified || book.source === 'seed') return true;
+  const deviation =
+    AXES.reduce((s, a) => s + Math.abs((book.axes[a] ?? AXIS_NEUTRAL) - AXIS_NEUTRAL), 0) /
+    AXES.length;
+  return deviation >= MIN_PROFILE_DEVIATION;
+}
 
 // Hard filters first (§5.6): already-read, series order, runtime window,
 // suppressions, reader-written standing rules. Every exclusion is recorded
@@ -56,6 +71,14 @@ export function applyHardFilters(
 
     if (ctx.notForMe.includes(book.id)) {
       excluded.push({ bookId: book.id, reason: 'dismissed — not for me' });
+      continue;
+    }
+
+    if (!profileInformative(book)) {
+      excluded.push({
+        bookId: book.id,
+        reason: 'tone profile unknown — tune it on the book page to make it recommendable',
+      });
       continue;
     }
 

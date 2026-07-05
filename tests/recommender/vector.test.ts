@@ -14,13 +14,25 @@ describe('book vectors (§5.1)', () => {
     }
   });
 
-  it('weights axes ×2 vs tags before normalisation', () => {
+  it('preserves within-block axis ratios (centred at neutral 0.5)', () => {
     const b = BOOKS[0];
     const v = bookVector(b, space);
-    // Recover the pre-normalisation ratio between two axis components.
+    // Recover the pre-normalisation ratio between two centred axis components.
     const i = AXES.indexOf('pace');
     const j = AXES.indexOf('humour');
-    expect(v[i] / v[j]).toBeCloseTo(b.axes.pace / b.axes.humour, 6);
+    expect(v[i] / v[j]).toBeCloseTo((b.axes.pace - 0.5) / (b.axes.humour - 0.5), 6);
+  });
+
+  it('a neutral profile contributes a zero axis block, not false similarity', () => {
+    const neutral = {
+      ...BOOKS[0],
+      id: 'neutral',
+      axes: Object.fromEntries(AXES.map((a) => [a, 0.5])) as typeof BOOKS[0]['axes'],
+      themeTags: [],
+    };
+    const v = bookVector(neutral, space);
+    expect(v.every((x) => x === 0)).toBe(true);
+    expect(cosine(v, bookVector(BOOKS[0], space))).toBe(0);
   });
 
   it('cosine of a vector with itself is 1', () => {

@@ -5,6 +5,23 @@
 /** Axis block weight vs theme tags in the book vector (§5.1). */
 export const AXIS_WEIGHT = 2;
 
+/**
+ * CONCRETIZED (§5.1 leaves the representation opaque): axis values are
+ * centred at neutral 0.5 before vectorisation, so cosine similarity measures
+ * agreement in deviation-from-neutral. Uncentred all-positive axes made every
+ * book ~90% similar to every other — neighbourhoods stopped discriminating,
+ * predictions collapsed to the mean and every band saturated at the clamp.
+ */
+export const AXIS_NEUTRAL = 0.5;
+
+/**
+ * CONCRETIZED profile-knowledge gate: a candidate whose axes sit at neutral
+ * is unknown, not average — it cannot be recommended honestly. Books that are
+ * neither reader-verified nor deck-authored need a mean |axis − 0.5| of at
+ * least this to enter the candidate pool.
+ */
+export const MIN_PROFILE_DEVIATION = 0.06;
+
 /** Recency decay time constant, months (§5.2). */
 export const TAU_MONTHS = 24;
 

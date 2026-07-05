@@ -1,6 +1,6 @@
 import { AXES } from '@/lib/types';
 import type { Book } from '@/lib/types';
-import { AXIS_WEIGHT } from './constants';
+import { AXIS_NEUTRAL, AXIS_WEIGHT } from './constants';
 
 // §5.1 Represent: x_b = [12 tone axes | TF-IDF theme tags], L2-normalised,
 // axes ×2 vs tags. The representation is opaque to the rest of the pipeline.
@@ -45,7 +45,11 @@ export function bookVector(
   space: VectorSpace,
   axisMultipliers?: number[],
 ): number[] {
-  const axisBlock = AXES.map((a, i) => (book.axes[a] ?? 0.5) * (axisMultipliers?.[i] ?? 1));
+  // Centred at neutral (see AXIS_NEUTRAL): a blank profile contributes a zero
+  // axis block instead of a false 90% similarity to everything.
+  const axisBlock = AXES.map(
+    (a, i) => ((book.axes[a] ?? AXIS_NEUTRAL) - AXIS_NEUTRAL) * (axisMultipliers?.[i] ?? 1),
+  );
   const tags = new Set(book.themeTags);
   const tagBlock = space.vocab.map((t, j) => (tags.has(t) ? space.idf[j] : 0));
   const axisUnit = l2Normalise(axisBlock);
