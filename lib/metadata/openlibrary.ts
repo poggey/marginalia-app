@@ -10,9 +10,14 @@ interface OLDoc {
   subject?: string[];
 }
 
-export async function searchOpenLibrary(query: string): Promise<BookSearchResult[]> {
+export async function searchOpenLibrary(
+  query: string,
+  opts: { sort?: 'rating' | 'readinglog'; limit?: number } = {},
+): Promise<BookSearchResult[]> {
   const url =
-    'https://openlibrary.org/search.json?limit=10&fields=title,author_name,first_publish_year,cover_i,isbn,number_of_pages_median,subject&q=' +
+    `https://openlibrary.org/search.json?limit=${opts.limit ?? 10}` +
+    (opts.sort ? `&sort=${opts.sort}` : '') +
+    '&fields=title,author_name,first_publish_year,cover_i,isbn,number_of_pages_median,subject&q=' +
     encodeURIComponent(query);
   const res = await fetch(url);
   if (!res.ok) throw new Error(`Open Library ${res.status}`);

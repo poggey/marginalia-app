@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db, getMeta, setMeta } from '@/lib/db';
+import { expandCandidatePool } from '@/lib/metadata/expandPool';
 import { useRecommendations } from '@/lib/useRecommendations';
 import { DEFAULT_STOP_INDEX, DELTA_STOPS, LEARNING_THRESHOLD } from '@/lib/recommender/constants';
 import type { ScoredCandidate } from '@/lib/recommender';
@@ -22,6 +23,40 @@ export default function ForYou() {
 
   const delta = DELTA_STOPS[stopIndex].delta;
   const { output } = useRecommendations(delta);
+  const [expanded, setExpanded] = useState(false);
+  const [wideningShelf, setWideningShelf] = useState(false);
+  const expandingRef = useRef(false);
+
+  // When the local pool runs thin, widen the shelf from Open Library —
+  // throttled so it re-runs only when the ledger has actually changed.
+  const THIN_POOL = 25;
+  const EXPANSION_STALE_MS = 7 * 24 * 60 * 60 * 1000;
+  useEffect(() => {
+    if (!output || output.coldStart || expandingRef.current) return;
+    if (output.pool.length >= THIN_POOL) return;
+    (async () => {
+      const last = await getMeta<{ at: string; ratedCount: number }>('poolExpansion');
+      if (
+        last &&
+        last.ratedCount === output.ratedCount &&
+        Date.now() - new Date(last.at).getTime() < EXPANSION_STALE_MS
+      )
+        return;
+      expandingRef.current = true;
+      setWideningShelf(true);
+      try {
+        await expandCandidatePool();
+        await setMeta('poolExpansion', {
+          at: new Date().toISOString(),
+          ratedCount: output.ratedCount,
+        });
+      } finally {
+        expandingRef.current = false;
+        setWideningShelf(false);
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [output?.ratedCount, output?.pool.length, output?.coldStart]);
 
   // Range returns: your real average rating at this δ (Ch. VI).
   const rangeReturns = useLiveQuery(async () => {
@@ -270,7 +305,54 @@ export default function ForYou() {
             {output.shortlist.length === 0 && (
               <div className="py-6 text-[14px] text-ink-3">Nothing passes the filters.</div>
             )}
+            {expanded &&
+              (() => {
+                const inShortlist = new Set(output.shortlist.map((c) => c.book.id));
+                const more = output.pool.filter((c) => !inShortlist.has(c.book.id)).slice(0, 10);
+                return more.map((c, i) => (
+                  <Link
+                    key={`more-${c.book.id}`}
+                    href={`/library/${c.book.id}`}
+                    className="row-in grid grid-cols-[26px_1fr_auto] items-center gap-4 border-b border-hairline-2 px-1.5 py-[15px] last:border-b-0 hover:bg-porcelain"
+                    style={{ animationDelay: `${i * 45}ms` }}
+                  >
+                    <div className="tnum text-[12.5px] font-medium text-ink-3">
+                      {String(output.shortlist.length + i + 1).padStart(2, '0')}
+                    </div>
+                    <div>
+                      <div className="font-serif text-[17px] font-medium leading-[1.3]">{c.book.title}</div>
+                      <div className="mt-px text-[12.5px] text-ink-2">
+                        {c.book.author}
+                        {c.book.audioHours ? ` · ${formatHours(c.book.audioHours)}` : ''}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="tnum text-[15px] font-semibold">
+                        {c.prediction ? c.prediction.rHat.toFixed(1) : '—'}
+                      </div>
+                      <div className="tnum text-[11.5px] text-ink-3">
+                        {c.prediction ? `± ${c.prediction.band.toFixed(1)}` : 'unscored'}
+                      </div>
+                    </div>
+                  </Link>
+                ));
+              })()}
           </div>
+          {output.pool.length > output.shortlist.length && (
+            <button
+              onClick={() => setExpanded(!expanded)}
+              className="mt-4 w-full rounded-btn border border-hairline py-2.5 text-[13px] font-semibold text-ink-2 transition-colors hover:border-ink-3 hover:text-ink"
+            >
+              {expanded
+                ? 'Show fewer'
+                : `Show more of the list (${Math.min(10, output.pool.length - output.shortlist.length)} further down the ranking)`}
+            </button>
+          )}
+          {wideningShelf && (
+            <div className="mt-3 text-[12.5px] text-ink-3">
+              Widening the shelf — consulting Open Library for books near your taste…
+            </div>
+          )}
         </div>
       </div>
     </>
