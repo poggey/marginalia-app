@@ -189,6 +189,11 @@ export default function BookPage({ params }: { params: Promise<{ bookId: string 
                   {new Date(latest.finishedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
                 </span>
               )}
+              {latest?.format && (
+                <span className="text-[13px] text-ink-2">
+                  {latest.format === 'audio' ? 'listened' : latest.format}
+                </span>
+              )}
               {latestRating?.wouldReread && (
                 <span className="text-[13px] text-ink-2">would re-read</span>
               )}

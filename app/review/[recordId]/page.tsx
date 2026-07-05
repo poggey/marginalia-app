@@ -42,6 +42,7 @@ function Review({ params }: { params: Promise<{ recordId: string }> }) {
   }, [recordId]);
 
   const [axes, setAxes] = useState({ ideas: 5, pace: 5, characters: 5, prose: 5, ending: 5 });
+  const [format, setFormat] = useState<'audio' | 'print' | 'ebook' | null>(null);
   const [verdict, setVerdict] = useState<number | null>(null);
   const [wouldReread, setWouldReread] = useState(false);
   const [moods, setMoods] = useState<string[]>([]);
@@ -65,6 +66,7 @@ function Review({ params }: { params: Promise<{ recordId: string }> }) {
       setMoods(data.existing.moods);
       setNote(data.existing.note ?? '');
     }
+    if (data.record?.format) setFormat(data.record.format);
     if (data.book) setToneAxes({ ...data.book.axes });
     if (data.record || data.existing) setPrefilled(true);
   }, [data, prefilled]);
@@ -84,6 +86,7 @@ function Review({ params }: { params: Promise<{ recordId: string }> }) {
       await db.records.update(recordId, {
         status: 'finished',
         finishedAt: record!.finishedAt ?? now,
+        format: format ?? undefined,
       });
       if (existing) {
         // Editing the same encounter: ratedAt stays put so recency is honest.
@@ -221,6 +224,26 @@ function Review({ params }: { params: Promise<{ recordId: string }> }) {
                 <span className="tnum text-ink-3">{axes[key]}</span>
               </label>
             ))}
+          </div>
+
+          <div className="mt-8 border-t border-hairline-2 pt-6">
+            <div className="label-caps mb-2.5">How did you read it?</div>
+            <div className="flex gap-2">
+              {(['audio', 'print', 'ebook'] as const).map((f) => (
+                <button
+                  key={f}
+                  onClick={() => setFormat(f)}
+                  aria-pressed={format === f}
+                  className={`rounded-full border px-4 py-1.5 text-[13px] font-medium capitalize transition-colors ${
+                    format === f
+                      ? 'border-accent bg-accent-soft text-accent-ink'
+                      : 'border-hairline bg-porcelain text-ink-2 hover:border-ink-3'
+                  }`}
+                >
+                  {f === 'audio' ? 'Listened' : f === 'print' ? 'Print' : 'Ebook'}
+                </button>
+              ))}
+            </div>
           </div>
 
           <div className="mt-8 border-t border-hairline-2 pt-6">
