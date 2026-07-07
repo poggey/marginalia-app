@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db, getMeta, setMeta } from '@/lib/db';
-import { expandCandidatePool } from '@/lib/metadata/expandPool';
+import { expandCandidatePool, POOL_EXPANSION_META_KEY } from '@/lib/metadata/expandPool';
 import { useRecommendations } from '@/lib/useRecommendations';
 import { DEFAULT_STOP_INDEX, DELTA_STOPS, LEARNING_THRESHOLD } from '@/lib/recommender/constants';
 import type { ScoredCandidate } from '@/lib/recommender';
@@ -29,10 +29,9 @@ export default function ForYou() {
 
   // When the local pool runs thin, widen the shelf from Open Library —
   // throttled so it re-runs only when the ledger has actually changed.
-  // Versioned key: bumping it makes every ledger rebuild its fetched stock
-  // once under the current sourcing rules (v3 = inferred tone profiles +
-  // profile-knowledge gate).
-  const POOL_EXPANSION_KEY = 'poolExpansionV3';
+  // Versioned key (see expandPool): bumping it makes every ledger rebuild its
+  // fetched stock once under the current sourcing rules.
+  const POOL_EXPANSION_KEY = POOL_EXPANSION_META_KEY;
   const THIN_POOL = 25;
   const EXPANSION_STALE_MS = 7 * 24 * 60 * 60 * 1000;
   useEffect(() => {

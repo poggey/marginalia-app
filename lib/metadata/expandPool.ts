@@ -1,7 +1,29 @@
-import { db } from '@/lib/db';
+import { db, getMeta } from '@/lib/db';
 import type { Book } from '@/lib/types';
 import { searchOpenLibrary } from './openlibrary';
 import { cleanThemeTags, inferAxes, type ProfileHint } from './autoProfile';
+
+// Recognition floor: how widely read a fetched candidate must be (Open
+// Library readinglog count). Reader-set in Settings; "known" is the default —
+// deep cuts opt in, they don't ambush.
+export type RecognitionLevel = 'any' | 'known' | 'acclaimed';
+export const RECOGNITION_FLOORS: Record<RecognitionLevel, number> = {
+  any: 0,
+  known: 50,
+  acclaimed: 150,
+};
+export const RECOGNITION_LABELS: Record<RecognitionLevel, { label: string; desc: string }> = {
+  any: { label: 'Anything', desc: 'Deep cuts and obscurities welcome' },
+  known: { label: 'Well known', desc: 'Books a fair number of readers have logged' },
+  acclaimed: { label: 'Widely read', desc: 'Only broadly recognised, much-logged titles' },
+};
+export const RECOGNITION_META_KEY = 'recognitionFloor';
+export const POOL_EXPANSION_META_KEY = 'poolExpansionV4';
+
+export async function getRecognitionFloor(): Promise<number> {
+  const level = (await getMeta<RecognitionLevel>(RECOGNITION_META_KEY)) ?? 'known';
+  return RECOGNITION_FLOORS[level] ?? RECOGNITION_FLOORS.known;
+}
 
 // On-demand candidate expansion (white paper §X): when the local pool runs
 // thin, consult Open Library for books matching the reader's loved theme tags
@@ -41,6 +63,7 @@ async function pruneUnreferencedExpansionBooks(): Promise<number> {
 
 export async function expandCandidatePool(): Promise<number> {
   await pruneUnreferencedExpansionBooks();
+  const recognitionFloor = await getRecognitionFloor();
 
   const [books, records, ratings] = await Promise.all([
     db.books.toArray(),
@@ -79,10 +102,14 @@ export async function expandCandidatePool(): Promise<number> {
   const queries: { q: string; minLogs: number; hint: ProfileHint }[] = [
     ...topTags.map((t) => ({
       q: `subject:"${GENRE_ANCHOR}" subject:"${t}"`,
-      minLogs: 30,
+      minLogs: Math.max(30, recognitionFloor),
       hint: { tag: t.replace(/ /g, '-') },
     })),
-    ...topAuthors.map((a) => ({ q: `author:"${a}"`, minLogs: 5, hint: { author: a } })),
+    ...topAuthors.map((a) => ({
+      q: `author:"${a}"`,
+      minLogs: Math.max(5, recognitionFloor),
+      hint: { author: a },
+    })),
   ];
 
   const additions: Book[] = [];
@@ -104,10 +131,11 @@ export async function expandCandidatePool(): Promise<number> {
         );
         const nonfictionMarker = r.subjects.some((s) => /^non-?fiction$/i.test(s.trim()));
         if (!fictionMarker || nonfictionMarker) continue;
-        // Books *about* the genre (criticism, film studies, teaching) and
-        // children's picture books carry the anchor subject too — skip them.
+        // Books *about* the genre (criticism, film studies, teaching),
+        // children's picture books, and graphic formats carry the anchor
+        // subject too — skip them all.
         const offShelf = r.subjects.some((s) =>
-          /history and criticism|criticism|films?\b|television|essays|study and teaching|handbooks|dictionaries|encyclopedias|bibliograph|periodicals|authorship|picture books|juvenile|children's stories|board books|readers/i.test(
+          /history and criticism|criticism|films?\b|television|essays|study and teaching|handbooks|dictionaries|encyclopedias|bibliograph|periodicals|authorship|picture books|juvenile|children's stories|board books|readers|graphic novel|comic|manga|cartoons/i.test(
             s,
           ),
         );
@@ -132,6 +160,7 @@ export async function expandCandidatePool(): Promise<number> {
           themeTags,
           profileVerified: false,
           source: 'openlibrary',
+          popularity: r.readinglog,
         });
         if (additions.length >= EXPANSION_CAP) break;
       }

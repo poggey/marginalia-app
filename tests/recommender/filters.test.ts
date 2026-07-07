@@ -126,4 +126,17 @@ describe('hard filters (§5.6)', () => {
     expect(pool.map((b) => b.id).sort()).toEqual(['x-informative', 'x-verified']);
     expect(excluded.find((e) => e.bookId === 'x-unknown')?.reason).toMatch(/tone profile unknown/);
   });
+
+  it('recognition floor: obscure fetched books are excluded; the deck always passes', () => {
+    const obscure: Book = {
+      ...BOOKS[3], id: 'x-obscure', title: 'Deep Cut', profileVerified: false,
+      source: 'openlibrary', popularity: 12,
+    };
+    const popular: Book = { ...obscure, id: 'x-popular', title: 'Big Hit', popularity: 900 };
+    const books = [obscure, popular, BOOKS[0]]; // BOOKS[0] = deck, no popularity recorded
+    const byId = new Map(books.map((b) => [b.id, b]));
+    const { pool, excluded } = applyHardFilters(books, ctx({ booksById: byId, minPopularity: 50 }));
+    expect(pool.map((b) => b.id).sort()).toEqual([BOOKS[0].id, 'x-popular'].sort());
+    expect(excluded.find((e) => e.bookId === 'x-obscure')?.reason).toMatch(/recognition floor/);
+  });
 });

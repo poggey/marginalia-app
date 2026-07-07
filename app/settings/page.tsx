@@ -5,6 +5,9 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { db, getMeta, setMeta, getRuntimeWindow, DEFAULT_RUNTIME, type RuntimeWindow } from '@/lib/db';
 import { buildExport, downloadExport, importPayload, type ExportPayload } from '@/lib/export';
 import { chipToPreference, parsePreference, PREF_CHIPS } from '@/lib/preferences';
+import {
+  POOL_EXPANSION_META_KEY, RECOGNITION_LABELS, RECOGNITION_META_KEY, type RecognitionLevel,
+} from '@/lib/metadata/expandPool';
 
 export default function SettingsPage() {
   const prefs = useLiveQuery(() => db.prefs.toArray(), []);
@@ -16,9 +19,18 @@ export default function SettingsPage() {
   }, []);
 
   const [runtime, setRuntime] = useState<RuntimeWindow>(DEFAULT_RUNTIME);
+  const [recognition, setRecognition] = useState<RecognitionLevel>('known');
   useEffect(() => {
     getRuntimeWindow().then(setRuntime);
+    getMeta<RecognitionLevel>(RECOGNITION_META_KEY).then((v) => v && setRecognition(v));
   }, []);
+
+  async function saveRecognition(level: RecognitionLevel) {
+    setRecognition(level);
+    await setMeta(RECOGNITION_META_KEY, level);
+    // Restock the fetched shelf under the new floor on the next For You visit.
+    await db.meta.delete(POOL_EXPANSION_META_KEY);
+  }
   const [freeText, setFreeText] = useState('');
   const [importMsg, setImportMsg] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -105,6 +117,38 @@ export default function SettingsPage() {
           >
             Add
           </button>
+        </div>
+      </section>
+
+      <section className="mt-6 rounded-panel border border-hairline bg-surface p-8">
+        <h2 className="text-[16px] font-semibold">Recognition floor</h2>
+        <p className="mt-1 text-[13.5px] text-ink-2">
+          How well-known must a book be before the librarian may fetch and recommend it? Measured
+          by how many Open Library readers have logged it. Books you add yourself always pass.
+        </p>
+        <div className="mt-5 flex flex-col gap-2.5">
+          {(Object.keys(RECOGNITION_LABELS) as RecognitionLevel[]).map((level) => (
+            <label
+              key={level}
+              className={`flex cursor-pointer items-baseline gap-3 rounded-input border px-4 py-3 transition-colors ${
+                recognition === level
+                  ? 'border-accent bg-accent-soft'
+                  : 'border-hairline bg-porcelain hover:border-ink-3'
+              }`}
+            >
+              <input
+                type="radio"
+                name="recognition"
+                checked={recognition === level}
+                onChange={() => saveRecognition(level)}
+                className="accent-[#3546E8]"
+              />
+              <span className={`text-[14px] font-semibold ${recognition === level ? 'text-accent-ink' : ''}`}>
+                {RECOGNITION_LABELS[level].label}
+              </span>
+              <span className="text-[13px] text-ink-2">{RECOGNITION_LABELS[level].desc}</span>
+            </label>
+          ))}
         </div>
       </section>
 

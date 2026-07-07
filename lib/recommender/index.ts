@@ -23,6 +23,7 @@ export interface RecommenderInput {
   notForMe: string[];
   delta: number;
   now: string; // ISO — structured-clone friendly for the worker
+  minPopularity?: number; // recognition floor (Settings), default 0
 }
 
 export interface ScoredCandidate {
@@ -137,6 +138,7 @@ export function recommend(input: RecommenderInput): RecommenderOutput {
     notForMe: input.notForMe,
     booksById,
     now,
+    minPopularity: input.minPopularity ?? 0,
   });
 
   // 2–5) sim → r̂ + band → nov → Score(δ).

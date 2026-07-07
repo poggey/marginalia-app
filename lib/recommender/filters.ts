@@ -33,6 +33,8 @@ export interface FilterContext {
   notForMe: string[]; // book ids dismissed via "Not for me"
   booksById: Map<string, Book>;
   now: Date;
+  /** Recognition floor: fetched books logged by fewer readers are excluded. */
+  minPopularity?: number;
 }
 
 export interface Exclusion {
@@ -78,6 +80,20 @@ export function applyHardFilters(
       excluded.push({
         bookId: book.id,
         reason: 'tone profile unknown — tune it on the book page to make it recommendable',
+      });
+      continue;
+    }
+
+    // Recognition floor applies only where popularity is known (fetched
+    // stock); the deck, manual entries and books you logged yourself pass.
+    if (
+      ctx.minPopularity != null &&
+      book.popularity != null &&
+      book.popularity < ctx.minPopularity
+    ) {
+      excluded.push({
+        bookId: book.id,
+        reason: `below your recognition floor — ${book.popularity} readers logged it`,
       });
       continue;
     }

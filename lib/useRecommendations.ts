@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db, getMeta, DEFAULT_RUNTIME, type RuntimeWindow } from './db';
+import { getRecognitionFloor } from './metadata/expandPool';
 import { recommend, type RecommenderInput, type RecommenderOutput } from './recommender';
 
 /**
@@ -14,15 +15,21 @@ export function useRecommendations(delta: number): {
   ready: boolean;
 } {
   const data = useLiveQuery(async () => {
-    const [books, records, ratings, prefs, runtime, notForMe] = await Promise.all([
+    const [books, records, ratings, prefs, runtime, notForMe, minPopularity] = await Promise.all([
       db.books.toArray(),
       db.records.toArray(),
       db.ratings.toArray(),
       db.prefs.toArray(),
       getMeta<RuntimeWindow>('runtimeWindow'),
       getMeta<string[]>('notForMe'),
+      getRecognitionFloor(),
     ]);
-    return { books, records, ratings, prefs, runtime: runtime ?? DEFAULT_RUNTIME, notForMe: notForMe ?? [] };
+    return {
+      books, records, ratings, prefs,
+      runtime: runtime ?? DEFAULT_RUNTIME,
+      notForMe: notForMe ?? [],
+      minPopularity,
+    };
   }, []);
 
   const [output, setOutput] = useState<RecommenderOutput | null>(null);
@@ -37,6 +44,7 @@ export function useRecommendations(delta: number): {
       prefs: data.prefs,
       runtime: data.runtime,
       notForMe: data.notForMe,
+      minPopularity: data.minPopularity,
       delta,
       now: new Date().toISOString(),
     };

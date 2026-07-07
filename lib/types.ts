@@ -43,6 +43,7 @@ export interface Book {
   themeTags: string[];        // cleaned theme vocabulary
   profileVerified: boolean;   // false when auto-seeded → show "Unverified"
   source: 'seed' | 'openlibrary' | 'googlebooks' | 'manual';
+  popularity?: number;        // additive vs ENGINEERING §1: Open Library readinglog count at fetch time — powers the recognition floor
 }
 
 export type ReadingStatus = 'queued' | 'reading' | 'finished' | 'abandoned' | 'paused';
