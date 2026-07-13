@@ -29,6 +29,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en-GB" className={`${instrumentSans.variable} ${newsreader.variable}`}>
       <body>
         <Chrome>{children}</Chrome>
+        <script
+          src="https://cdn.jsdelivr.net/gh/poggey/built-by@main/built-by.js"
+          data-name="Padraig Middleton"
+          data-github="https://github.com/poggey"
+          defer
+        ></script>
       </body>
     </html>
   );
