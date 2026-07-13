@@ -26,7 +26,7 @@ export default function BookCard({
       href={`/library/${book.id}`}
       className="group relative block rounded-card border border-hairline bg-surface p-[18px] transition-all duration-200 hover:-translate-y-[3px] hover:border-[#DCDCD6] hover:shadow-[0_20px_36px_-24px_rgba(23,24,28,.18)]"
     >
-      <BookCover book={book} className="mb-3.5 h-[118px] w-full" titleSize={13.5} />
+      <BookCover book={book} fit="contain" className="mx-auto mb-3.5 h-[186px] w-[124px]" titleSize={13.5} />
       <div className="text-[14.5px] font-semibold leading-[1.35]">{book.title}</div>
       <div className="mt-0.5 text-[12.5px] text-ink-2">
         {book.author}

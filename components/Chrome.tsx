@@ -11,6 +11,7 @@ import { toneGradient } from '@/lib/shelfTone';
 import LogBookModal from '@/components/LogBookModal';
 
 const NAV_LINKS = [
+  { href: '/', label: 'Home' },
   { href: '/library', label: 'Library' },
   { href: '/for-you', label: 'For you' },
   { href: '/queue', label: 'Queue' },
@@ -105,11 +106,12 @@ export default function Chrome({ children }: { children: React.ReactNode }) {
       {!onboarding && (
         <nav className="sticky top-0 z-10 border-b border-hairline bg-porcelain/[.88] backdrop-blur-md">
           <div className="mx-auto flex max-w-[1120px] items-center gap-8 px-7 pb-[18px] pt-5">
-            <Link href="/for-you" className="font-serif text-[21px] font-medium italic tracking-[.01em]">
+            <Link href="/" className="font-serif text-[21px] font-medium italic tracking-[.01em]">
               Marginalia
             </Link>
             {NAV_LINKS.map((l) => {
-              const on = pathname === l.href || pathname.startsWith(l.href + '/');
+              const on =
+                l.href === '/' ? pathname === '/' : pathname === l.href || pathname.startsWith(l.href + '/');
               return (
                 <Link
                   key={l.href}

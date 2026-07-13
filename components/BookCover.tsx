@@ -12,10 +12,12 @@ export default function BookCover({
   book,
   className = '',
   titleSize = 15,
+  fit = 'cover',
 }: {
   book: Book;
   className?: string;
   titleSize?: number;
+  fit?: 'cover' | 'contain';
 }) {
   const cover = useLiveQuery(() => db.covers.get(book.id), [book.id]);
   const [blobUrl, setBlobUrl] = useState<string>();
@@ -34,7 +36,7 @@ export default function BookCover({
       <img
         src={src}
         alt={`Cover of ${book.title}`}
-        className={`rounded-cover object-cover ${className}`}
+        className={`rounded-cover ${fit === 'contain' ? 'object-contain' : 'object-cover'} ${className}`}
       />
     );
   }

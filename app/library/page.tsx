@@ -6,7 +6,7 @@ import { useSearchParams } from 'next/navigation';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '@/lib/db';
 import type { Book, Rating, ReadingRecord, ReadingStatus } from '@/lib/types';
-import BookCover from '@/components/BookCover';
+import ReadingNowList from '@/components/ReadingNowList';
 
 type Row = { book: Book; record?: ReadingRecord; rating?: Rating };
 const STATUS_FILTERS: (ReadingStatus | 'all')[] = ['all', 'finished', 'reading', 'queued', 'paused', 'abandoned'];
@@ -78,53 +78,9 @@ function Library() {
 
   if (!filtered) return null;
 
-  const readingNow = (rows ?? []).filter(
-    (r) => r.record?.status === 'reading' || r.record?.status === 'paused',
-  );
-
   return (
     <>
-      {readingNow.length > 0 && (
-        <section className="mt-11">
-          <div className="label-caps mb-4">Reading now</div>
-          <div className="flex flex-col gap-3">
-            {readingNow.map(({ book, record }) => (
-              <div
-                key={record!.id}
-                className="flex items-center gap-5 rounded-card border border-hairline bg-surface px-5 py-4"
-              >
-                <Link href={`/library/${book.id}`}>
-                  <BookCover book={book} className="h-[66px] w-[44px]" titleSize={7} />
-                </Link>
-                <div className="min-w-0 flex-1">
-                  <Link href={`/library/${book.id}`} className="truncate font-serif text-[17px] font-medium leading-tight">
-                    {book.title}
-                  </Link>
-                  <div className="text-[12.5px] text-ink-2">
-                    {book.author}
-                    {record!.status === 'paused' ? ' · paused' : ''}
-                    {record!.startedAt
-                      ? ` · since ${new Date(record!.startedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}`
-                      : ''}
-                  </div>
-                </div>
-                <Link
-                  href={`/review/${record!.id}`}
-                  className="rounded-btn bg-accent-soft px-4 py-2 text-[13px] font-semibold text-accent-ink transition-colors hover:bg-[#DFE3FD]"
-                >
-                  Finished — rate it
-                </Link>
-                <Link
-                  href={`/review/${record!.id}?mode=dnf`}
-                  className="rounded-btn border border-hairline px-4 py-2 text-[13px] font-semibold text-ink-2 transition-colors hover:border-ink-3 hover:text-ink"
-                >
-                  Stopping
-                </Link>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
+      <ReadingNowList />
 
       <div className="mt-11 flex flex-wrap items-baseline justify-between gap-4">
         <h1 className="font-serif text-[34px] font-medium tracking-[-0.01em]">Library</h1>
